@@ -2,13 +2,15 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const mongoose = require("mongoose");
-const multer = require("multer");
 app.use(cors());
 require("dotenv").config();
 app.use(express.json());
 const routes = require("./routes/food");
+const path = require("path");
 
 app.use("/foods", routes);
+
+app.use("/images", express.static(path.join(__dirname, "images")));
 
 const connectDB = async () => {
   try {
