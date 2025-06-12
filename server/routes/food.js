@@ -33,7 +33,6 @@ const upload = multer({ storage, fileFilter });
 
 router.get("/food", foodController.getAllFoods);
 router.get("/food/:id", foodController.getFoodById);
-router.get("/category", foodController.getFoodCategory);
 
 // Apply multer only on POST route
 router.post("/add-food", upload.single("image"), foodController.addFood);

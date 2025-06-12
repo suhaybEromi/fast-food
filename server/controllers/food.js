@@ -1,10 +1,18 @@
+const food = require("../models/food");
 const Food = require("../models/food");
 const fs = require("fs");
 
 exports.getAllFoods = async (req, res, next) => {
   try {
     const foods = await Food.find();
-    res.status(200).json({ message: "Foods retrieved successfully", foods });
+
+    const formattedFoods = foods.map(food => ({
+      ...food._doc,
+      price: Number(food.price).toFixed(3),
+    }));
+    res
+      .status(200)
+      .json({ message: "Foods retrieved successfully", foods: formattedFoods });
   } catch (error) {
     console.error("Error in getAllFoods:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -25,18 +33,6 @@ exports.getFoodById = async (req, res, next) => {
   }
 };
 
-exports.getFoodCategory = async (req, res, next) => {
-  try {
-    const food = await Food.find().populate("category");
-    res
-      .status(200)
-      .json({ message: "Food item category retrieved successfully", food });
-  } catch (error) {
-    console.error("Error in getFoodById:", error);
-    res.status(500).json({ message: "Internal server error" });
-  }
-};
-
 exports.addFood = async (req, res, next) => {
   const { name, description, price, category } = req.body;
 
@@ -47,10 +43,12 @@ exports.addFood = async (req, res, next) => {
   const imageUrl = req.file.path;
 
   try {
+    const formattedPrice = parseFloat(price).toFixed(3);
+
     const newFood = new Food({
       name,
       description,
-      price,
+      price: formattedPrice,
       category,
       imageUrl,
     });
@@ -70,9 +68,10 @@ exports.updateFood = async (req, res, next) => {
   const { name, description, price, category } = req.body;
 
   try {
+    const formattedPrice = parseFloat(price).toFixed(3);
     const food = await Food.findByIdAndUpdate(
       foodId,
-      { name, description, price, category },
+      { name, description, price: formattedPrice, category },
       { new: true },
     );
     if (!food) {

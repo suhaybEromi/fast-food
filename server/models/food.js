@@ -11,7 +11,7 @@ const foodSchema = new Schema({
     required: true,
   },
   price: {
-    type: Number,
+    type: String,
     required: true,
   },
   category: {
