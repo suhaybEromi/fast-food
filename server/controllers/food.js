@@ -1,4 +1,3 @@
-const food = require("../models/food");
 const Food = require("../models/food");
 const fs = require("fs");
 
@@ -15,6 +14,16 @@ exports.getAllFoods = async (req, res, next) => {
       .json({ message: "Foods retrieved successfully", foods: formattedFoods });
   } catch (error) {
     console.error("Error in getAllFoods:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+exports.getLatestFoods = async (req, res) => {
+  try {
+    const foods = await Food.find().sort({ createdAt: -1 }).limit(3);
+    res.status(200).json({ foods });
+  } catch (error) {
+    console.error("Error fetching latest foods:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
