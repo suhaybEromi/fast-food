@@ -51,7 +51,7 @@ export default function Navbar({ category }) {
         <div>
           <Link
             to="/cart"
-            className="text-decoration-none text-dark d-flex align-items-center"
+            className="text-decoration-none text-secondary d-flex align-items-center"
           >
             <FaShoppingCart size={24} />
           </Link>

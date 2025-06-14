@@ -1,0 +1,60 @@
+const Cart = require("../models/cart");
+const Food = require("../models/food");
+
+exports.getCart = async (req, res) => {
+  const { userId } = req.params;
+  try {
+    const cart = await Cart.findOne({ userId }).populate("items.foodId");
+
+    if (!cart) {
+      return res.status(404).json({ message: "Cart not found" });
+    }
+    res.status(200).json(cart);
+  } catch (error) {
+    console.error("Get cart error:", error);
+    res.status(500).json({ message: "Server error while fetching cart" });
+  }
+};
+
+exports.addToCart = async (req, res) => {
+  const { userId, foodId, quantity } = req.body;
+
+  try {
+    const food = await Food.findById(foodId);
+    if (!food) {
+      return res.status(404).json({ message: "Food item not found" });
+    }
+
+    const price = parseFloat(food.price);
+    const totalPrice = (price * quantity).toFixed(3); // 👈 always returns string like "60.000"
+
+    let cart = await Cart.findOne({ userId });
+
+    if (!cart) {
+      cart = new Cart({
+        userId,
+        items: [{ foodId, quantity, totalPrice }],
+      });
+    } else {
+      const itemIndex = cart.items.findIndex(
+        item => item.foodId.toString() === foodId,
+      );
+
+      if (itemIndex > -1) {
+        cart.items[itemIndex].quantity += quantity;
+
+        const currentTotal = parseFloat(cart.items[itemIndex].totalPrice);
+        const newTotal = (currentTotal + price * quantity).toFixed(3);
+        cart.items[itemIndex].totalPrice = newTotal; // 👈 string "90.000"
+      } else {
+        cart.items.push({ foodId, quantity, totalPrice });
+      }
+    }
+
+    await cart.save();
+    res.status(200).json({ message: "Item added to cart successfully", cart });
+  } catch (error) {
+    console.error("Add to cart error:", error);
+    res.status(500).json({ message: "Server error while adding to cart" });
+  }
+};

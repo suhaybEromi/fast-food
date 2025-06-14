@@ -5,10 +5,12 @@ const mongoose = require("mongoose");
 app.use(cors());
 require("dotenv").config();
 app.use(express.json());
-const routes = require("./routes/food");
+const foodRoutes = require("./routes/food");
+const cartRoutes = require("./routes/cart");
 const path = require("path");
 
-app.use("/foods", routes);
+app.use("/foods", foodRoutes);
+app.use("/cart", cartRoutes);
 
 app.use("/images", express.static(path.join(__dirname, "images")));
 

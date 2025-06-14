@@ -6,11 +6,20 @@ import { Link } from "react-router-dom";
 export default function FoodData({ selectedCategory }) {
   const [foods, setFoods] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [quantities, setQuantities] = useState({});
+
+  const userId = "684dd36cef935e1523311a82";
 
   const displayFood = async () => {
     try {
       const response = await axios.get("http://localhost:4000/foods/food");
       setFoods(response.data.foods);
+
+      const initialQuantities = {};
+      response.data.foods.forEach(food => {
+        initialQuantities[food._id] = 1;
+      });
+      setQuantities(initialQuantities);
     } catch (error) {
       console.error("Error fetching food data:", error);
     } finally {
@@ -21,6 +30,30 @@ export default function FoodData({ selectedCategory }) {
   useEffect(() => {
     displayFood();
   }, []);
+
+  const handleAddToCart = async foodId => {
+    const quantity = quantities[foodId];
+    try {
+      const response = await axios.post(
+        "http://localhost:4000/cart/add-to-cart",
+        {
+          userId,
+          foodId,
+          quantity,
+        },
+      );
+      console.log(response.data);
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+    }
+  };
+
+  const changeQuantity = (foodId, amount) => {
+    setQuantities(prev => ({
+      ...prev,
+      [foodId]: Math.max(1, (prev[foodId] || 1) + amount),
+    }));
+  };
 
   const filteredFoods = selectedCategory
     ? foods.filter(
@@ -77,20 +110,25 @@ export default function FoodData({ selectedCategory }) {
                       variant="outline-secondary"
                       size="sm"
                       className="me-2"
+                      onClick={() => changeQuantity(food._id, -1)}
                     >
                       -
                     </Button>
-                    <span className="px-2">1</span>
+                    <span className="px-2">{quantities[food._id] || 1}</span>
                     <Button
                       variant="outline-secondary"
                       size="sm"
                       className="ms-2"
+                      onClick={() => changeQuantity(food._id, 1)}
                     >
                       +
                     </Button>
                   </div>
                   <div className="text-start">
-                    <Button variant="primary" className="">
+                    <Button
+                      variant="primary"
+                      onClick={() => handleAddToCart(food._id)}
+                    >
                       Add To Cart
                     </Button>
                   </div>
