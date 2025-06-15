@@ -101,7 +101,10 @@ export default function FoodData({ selectedCategory }) {
                 <Card.Body className="text-center d-flex flex-column">
                   <Card.Title className="fs-5">{food.name}</Card.Title>
                   <Card.Text className="text-muted mb-2">
-                    IQD {food.price}
+                    IQD{" "}
+                    {Number(food.price * (quantities[food._id] || 1)).toFixed(
+                      3,
+                    )}
                   </Card.Text>
 
                   {/* Quantity Controls */}
