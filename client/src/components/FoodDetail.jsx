@@ -1,13 +1,16 @@
 import { Link, useParams } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Container, Spinner, Row, Col, Card, Button } from "react-bootstrap";
 import axios from "axios";
 import BackHome from "./BackHome";
+import { FoodContext } from "../context/FoodContext";
+import CartIconWithCount from "./CartIconWithCount";
 
 export default function FoodDetail() {
   const { id } = useParams();
   const [food, setFood] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { addToCart } = useContext(FoodContext);
 
   const detailFood = async () => {
     try {
@@ -42,6 +45,14 @@ export default function FoodDetail() {
   return (
     <Container className="my-5">
       <BackHome />
+      <div className="d-flex justify-content-end">
+        <Link
+          to="/cart"
+          className="text-decoration-none text-secondary position-relative me-2"
+        >
+          <CartIconWithCount />
+        </Link>
+      </div>
 
       <Row className="justify-content-center mt-4">
         <Col md={8} lg={6}>
@@ -70,10 +81,14 @@ export default function FoodDetail() {
             <Card.Body className="text-center">
               <Card.Title className="fs-3">{food.name}</Card.Title>
               <Card.Text className="text-muted">{food.description}</Card.Text>
-              <h5 className="text-success mb-3">Price: ${food.price}</h5>
+              <h5 className="text-success mb-3">Price: {food.price}</h5>
 
               <div className="mt-4">
-                <Button variant="primary" className="me-2">
+                <Button
+                  variant="primary"
+                  className="me-2"
+                  onClick={() => addToCart(food, 1)}
+                >
                   Add to Cart
                 </Button>
                 <Link to="/" className="btn btn-outline-secondary">

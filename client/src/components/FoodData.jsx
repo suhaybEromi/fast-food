@@ -1,14 +1,16 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Card, Row, Col, Container, Button, Spinner } from "react-bootstrap";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import { FoodContext } from "../context/FoodContext";
 
-export default function FoodData({ selectedCategory }) {
+export default function FoodData(props) {
+  const selectedCategory = props.selectedCategory;
+  const { addToCart } = useContext(FoodContext);
+
   const [foods, setFoods] = useState([]);
   const [loading, setLoading] = useState(true);
   const [quantities, setQuantities] = useState({});
-
-  const userId = "684dd36cef935e1523311a82";
 
   const displayFood = async () => {
     try {
@@ -31,21 +33,9 @@ export default function FoodData({ selectedCategory }) {
     displayFood();
   }, []);
 
-  const handleAddToCart = async foodId => {
-    const quantity = quantities[foodId];
-    try {
-      const response = await axios.post(
-        "http://localhost:4000/cart/add-to-cart",
-        {
-          userId,
-          foodId,
-          quantity,
-        },
-      );
-      console.log(response.data);
-    } catch (error) {
-      console.error("Error adding to cart:", error);
-    }
+  const handleAddToCart = async food => {
+    const quantity = quantities[food._id];
+    addToCart(food, quantity);
   };
 
   const changeQuantity = (foodId, amount) => {
@@ -73,7 +63,7 @@ export default function FoodData({ selectedCategory }) {
       ) : (
         <Row>
           {filteredFoods.map((food, index) => (
-            <Col key={index} md={4} className="mb-4">
+            <Col key={index} md={3} className="mb-4">
               <Card className="shadow rounded-4 h-100">
                 <div
                   className="text-center overflow-hidden rounded-top-4"
@@ -130,7 +120,7 @@ export default function FoodData({ selectedCategory }) {
                   <div className="text-start">
                     <Button
                       variant="primary"
-                      onClick={() => handleAddToCart(food._id)}
+                      onClick={() => addToCart(food._id)}
                     >
                       Add To Cart
                     </Button>

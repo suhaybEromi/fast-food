@@ -2,6 +2,8 @@ import { Link, useLocation } from "react-router-dom";
 import { FaShoppingCart } from "react-icons/fa";
 import FoodData from "./FoodData";
 import BackHome from "./BackHome";
+import Cart from "./Cart";
+import CartIconWithCount from "./CartIconWithCount";
 
 export default function Navbar({ category }) {
   const location = useLocation();
@@ -53,7 +55,8 @@ export default function Navbar({ category }) {
             to="/cart"
             className="text-decoration-none text-secondary d-flex align-items-center"
           >
-            <FaShoppingCart size={24} />
+            {/* <FaShoppingCart size={24} /> */}
+            <CartIconWithCount />
           </Link>
         </div>
       </div>

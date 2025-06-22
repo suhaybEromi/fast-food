@@ -8,7 +8,7 @@ export default function BackHome() {
       <div className="mt-3">
         <Link to="/" className="text-decoration-none text-dark">
           <FaArrowLeft className="me-2" />
-          Back to Home Page
+          Back to Home
         </Link>
       </div>
     </Container>
