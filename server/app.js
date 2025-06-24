@@ -8,11 +8,15 @@ app.use(express.json());
 const foodRoutes = require("./routes/food");
 const cartRoutes = require("./routes/cart");
 const orderRoutes = require("./routes/order");
+const userRoutes = require("./routes/user");
 const path = require("path");
+const cookieParser = require("cookie-parser");
 
 app.use("/foods", foodRoutes);
 app.use("/cart", cartRoutes);
 app.use("/order", orderRoutes);
+app.use("/user", userRoutes);
+app.use(cookieParser());
 
 app.use("/images", express.static(path.join(__dirname, "images")));
 

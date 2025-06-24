@@ -48,29 +48,3 @@ exports.createOrder = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
-
-// exports.createOrder = async (req, res) => {
-//   try {
-//     const { userId, items, message } = req.body;
-
-//     if (!userId || !items || items.length === 0) {
-//       return res.status(400).json({ message: "Missing order details" });
-//     }
-
-//     // 1. Save new order
-//     const newOrder = new Order({ userId, items, message });
-//     await newOrder.save();
-
-//     // 2. "Print" order — for now we just log it to terminal
-//     console.log("🧾 Order Printed:");
-//     console.log(message);
-
-//     // 3. Clear cart from DB
-//     await Cart.findOneAndUpdate({ userId }, { items: [] });
-
-//     res.status(201).json({ message: "Order placed & cart cleared" });
-//   } catch (error) {
-//     console.error("❌ Error placing order:", error);
-//     res.status(500).json({ message: "Error placing order" });
-//   }
-// };
