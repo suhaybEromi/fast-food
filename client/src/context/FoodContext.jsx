@@ -5,7 +5,7 @@ export const FoodContext = createContext(null);
 
 export default function FoodContextProvider({ children }) {
   const [cartItems, setCartItems] = useState([]);
-  const [userId] = useState("6856ac982fc5014bfb4cfb1c");
+  const [userId] = useState("6856ac982fc5014bfb4cfb1c"); // replace with real user id
 
   const fetchCart = async () => {
     try {
@@ -39,12 +39,27 @@ export default function FoodContextProvider({ children }) {
       const res = await axios.delete(
         `http://localhost:4000/cart/${userId}/remove/${foodId}`,
       );
-
       if (res.status === 200) {
-        await fetchCart();
+        await fetchCart(); // refresh cart after removal
       }
     } catch (error) {
       console.error("❌ Failed to remove item from cart:", error);
+    }
+  };
+
+  const createOrder = async () => {
+    if (cartItems.length === 0) return alert("Cart is empty");
+    try {
+      const res = await axios.post("http://localhost:4000/order/create-order", {
+        userId,
+      });
+      if (res.status === 201) {
+        fetchCart(); // clear cart after order
+      } else {
+        console.error("⚠️ Server returned error:", res.data.message);
+      }
+    } catch (error) {
+      console.error("❌ Failed to create order:", error);
     }
   };
 
@@ -54,7 +69,14 @@ export default function FoodContextProvider({ children }) {
 
   return (
     <FoodContext.Provider
-      value={{ cartItems, addToCart, fetchCart, removeCart, userId }}
+      value={{
+        cartItems,
+        addToCart,
+        fetchCart,
+        removeCart,
+        createOrder,
+        userId,
+      }}
     >
       {children}
     </FoodContext.Provider>

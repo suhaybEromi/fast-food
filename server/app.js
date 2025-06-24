@@ -7,10 +7,12 @@ require("dotenv").config();
 app.use(express.json());
 const foodRoutes = require("./routes/food");
 const cartRoutes = require("./routes/cart");
+const orderRoutes = require("./routes/order");
 const path = require("path");
 
 app.use("/foods", foodRoutes);
 app.use("/cart", cartRoutes);
+app.use("/order", orderRoutes);
 
 app.use("/images", express.static(path.join(__dirname, "images")));
 
