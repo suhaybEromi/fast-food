@@ -3,6 +3,7 @@ import { Card, Row, Col, Container, Button, Spinner } from "react-bootstrap";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import { FoodContext } from "../context/FoodContext";
+import { formatMoney } from "../utils/formatMoney";
 
 export default function FoodData(props) {
   const selectedCategory = props.selectedCategory;
@@ -33,9 +34,9 @@ export default function FoodData(props) {
     displayFood();
   }, []);
 
-  const handleAddToCart = async food => {
+  const handleAddToCart = food => {
     const quantity = quantities[food._id];
-    addToCart(food, quantity);
+    addToCart(food._id, quantity);
   };
 
   const changeQuantity = (foodId, amount) => {
@@ -91,10 +92,7 @@ export default function FoodData(props) {
                 <Card.Body className="text-center d-flex flex-column">
                   <Card.Title className="fs-5">{food.name}</Card.Title>
                   <Card.Text className="text-muted mb-2">
-                    IQD{" "}
-                    {Number(food.price * (quantities[food._id] || 1)).toFixed(
-                      3,
-                    )}
+                    IQD {formatMoney(food.price * (quantities[food._id] || 1))}
                   </Card.Text>
 
                   {/* Quantity Controls */}
@@ -120,7 +118,7 @@ export default function FoodData(props) {
                   <div className="text-start">
                     <Button
                       variant="primary"
-                      onClick={() => addToCart(food._id)}
+                      onClick={() => handleAddToCart(food)}
                     >
                       Add To Cart
                     </Button>

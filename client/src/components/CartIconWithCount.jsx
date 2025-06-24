@@ -1,30 +1,22 @@
 import { useContext } from "react";
 import { FoodContext } from "../context/FoodContext";
 import { FaShoppingCart } from "react-icons/fa";
-import { Badge } from "react-bootstrap";
 
 export default function CartIconWithCount() {
   const { cartItems } = useContext(FoodContext);
 
-  // Calculate total quantity of all items
-  const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const totalCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
   return (
-    <div style={{ position: "relative", display: "inline-block" }}>
-      <FaShoppingCart size={28} color="#333" />
-      {totalQuantity > 0 && (
-        <Badge
-          pill
-          bg="danger"
-          style={{
-            position: "absolute",
-            top: "-8px",
-            right: "-10px",
-            fontSize: "0.7rem",
-          }}
+    <div className="position-relative">
+      <FaShoppingCart size={24} color="#333" />
+      {totalCount > 0 && (
+        <span
+          className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+          style={{ fontSize: "0.75rem" }}
         >
-          {totalQuantity}
-        </Badge>
+          {totalCount}
+        </span>
       )}
     </div>
   );

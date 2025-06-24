@@ -5,6 +5,7 @@ import axios from "axios";
 import BackHome from "./BackHome";
 import { FoodContext } from "../context/FoodContext";
 import CartIconWithCount from "./CartIconWithCount";
+import { formatMoney } from "../utils/formatMoney";
 
 export default function FoodDetail() {
   const { id } = useParams();
@@ -81,7 +82,7 @@ export default function FoodDetail() {
             <Card.Body className="text-center">
               <Card.Title className="fs-3">{food.name}</Card.Title>
               <Card.Text className="text-muted">{food.description}</Card.Text>
-              <h5 className="text-success mb-3">Price: {food.price}</h5>
+              <h5 className=" mb-3">IQD {formatMoney(food.price || 1)}</h5>
 
               <div className="mt-4">
                 <Button

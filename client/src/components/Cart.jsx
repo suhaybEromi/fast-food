@@ -1,11 +1,12 @@
 import { useContext, useEffect } from "react";
 import { FoodContext } from "../context/FoodContext";
-import { Table, Container, Button, Row, Col, Form } from "react-bootstrap";
-import { FaTrash } from "react-icons/fa";
+import { Table, Container, Button, Row, Col } from "react-bootstrap";
 import BackHome from "./BackHome";
+import { formatMoney } from "../utils/formatMoney";
+import { MdDeleteForever } from "react-icons/md";
 
 export default function Cart() {
-  const { cartItems, fetchCart } = useContext(FoodContext);
+  const { cartItems, fetchCart, removeCart } = useContext(FoodContext);
 
   useEffect(() => {
     fetchCart();
@@ -15,8 +16,7 @@ export default function Cart() {
     (acc, item) => acc + parseFloat(item.totalPrice),
     0,
   );
-  const deliveryFee = 5;
-  const total = subtotal + deliveryFee;
+  const total = subtotal;
 
   return (
     <Container className="my-5">
@@ -27,8 +27,8 @@ export default function Cart() {
       <Table responsive bordered hover className="align-middle text-center">
         <thead className="table-light">
           <tr>
-            <th>Items</th>
-            <th>Title</th>
+            <th>Image</th>
+            <th>Name</th>
             <th>Price</th>
             <th>Quantity</th>
             <th>Total</th>
@@ -56,13 +56,17 @@ export default function Cart() {
                   />
                 </td>
                 <td>{item.foodId.name}</td>
-                <td>{item.foodId.price} IQD</td>
+                <td>{formatMoney(item.foodId.price)} IQD</td>
+
                 <td>{item.quantity}</td>
-                <td>{parseFloat(item.totalPrice).toFixed(3)} IQD</td>
+                <td>{formatMoney(item.totalPrice)} IQD</td>
                 <td>
-                  <Button variant="danger" size="sm">
-                    <FaTrash />
-                  </Button>
+                  <button
+                    className="btn text-danger border-0 fs-4"
+                    onClick={() => removeCart(item.foodId._id)}
+                  >
+                    <MdDeleteForever />
+                  </button>
                 </td>
               </tr>
             ))
@@ -72,29 +76,19 @@ export default function Cart() {
 
       {/* Cart Summary Section */}
       {cartItems.length > 0 && (
-        <Row className="mt-5 justify-content-between">
-          <Col md={6}>
-            <Form className="d-flex gap-2">
-              <Form.Control type="text" placeholder="promo code" />
-              <Button variant="dark">Submit</Button>
-            </Form>
-          </Col>
-
+        <Row className="mt-5 justify-content-end">
           <Col md={4}>
             <div className="p-3 border rounded shadow-sm bg-light">
               <h5 className="fw-semibold">Cart Totals</h5>
               <div className="d-flex justify-content-between">
                 <span>Subtotal</span>
-                <strong>{subtotal.toFixed(3)} IQD</strong>
+                <strong>{formatMoney(subtotal)} IQD</strong>
               </div>
-              <div className="d-flex justify-content-between">
-                <span>Delivery Fee</span>
-                <strong>{deliveryFee.toFixed(3)} IQD</strong>
-              </div>
+
               <hr />
               <div className="d-flex justify-content-between">
                 <span>Total</span>
-                <strong>{total.toFixed(3)} IQD</strong>
+                <strong>{formatMoney(total)} IQD</strong>
               </div>
               <Button
                 variant="warning"

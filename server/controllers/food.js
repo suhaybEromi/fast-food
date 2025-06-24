@@ -7,8 +7,9 @@ exports.getAllFoods = async (req, res, next) => {
 
     const formattedFoods = foods.map(food => ({
       ...food._doc,
-      price: Number(food.price).toFixed(3),
+      price: Number(food.price),
     }));
+
     res
       .status(200)
       .json({ message: "Foods retrieved successfully", foods: formattedFoods });
@@ -52,12 +53,10 @@ exports.addFood = async (req, res, next) => {
   const imageUrl = req.file.path;
 
   try {
-    const formattedPrice = parseFloat(price).toFixed(3);
-
     const newFood = new Food({
       name,
       description,
-      price: formattedPrice,
+      price: parseFloat(price),
       category,
       imageUrl,
     });
@@ -77,10 +76,9 @@ exports.updateFood = async (req, res, next) => {
   const { name, description, price, category } = req.body;
 
   try {
-    const formattedPrice = parseFloat(price).toFixed(3);
     const food = await Food.findByIdAndUpdate(
       foodId,
-      { name, description, price: formattedPrice, category },
+      { name, description, price: parseFloat(price), category },
       { new: true },
     );
     if (!food) {
