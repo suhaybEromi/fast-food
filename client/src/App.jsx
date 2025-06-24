@@ -4,6 +4,7 @@ import FoodDetail from "./components/FoodDetail";
 import Navbar from "./components/Navbar";
 import FoodContextProvider from "./context/FoodContext";
 import Cart from "./components/Cart";
+import Login from "./page/Login";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
             <Route path="/burger" element={<Navbar category="burger" />} />
             <Route path="/drink" element={<Navbar category="drink" />} />
             <Route path="/cart" element={<Cart />} />
+            <Route path="/signin" element={<Login />} />
           </Routes>
         </BrowserRouter>
       </FoodContextProvider>

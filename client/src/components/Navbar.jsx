@@ -1,9 +1,8 @@
 import { Link, useLocation } from "react-router-dom";
-import { FaShoppingCart } from "react-icons/fa";
 import FoodData from "./FoodData";
 import BackHome from "./BackHome";
-import Cart from "./Cart";
 import CartIconWithCount from "./CartIconWithCount";
+import imageIcon from "../assets/logo-food.png";
 
 export default function Navbar({ category }) {
   const location = useLocation();
@@ -19,6 +18,7 @@ export default function Navbar({ category }) {
       {/* Navigation bar with categories centered and cart icon right */}
       <div className="d-flex justify-content-between align-items-center px-5 mt-3">
         {/* Centered Category Links */}
+        <img src={imageIcon} width="100px" />
         <div className="text-center flex-grow-1 d-flex justify-content-center">
           <Link to="/pizza" className="m-3 fs-5 text-decoration-none">
             <span
@@ -59,10 +59,17 @@ export default function Navbar({ category }) {
             <CartIconWithCount />
           </Link>
         </div>
+
+        <div>
+          <Link to="/signin">
+            <button className="btn btn-outline-dark border border-1 border-dark rounded-3 ms-5">
+              Sign In
+            </button>
+          </Link>
+        </div>
       </div>
 
       {/* Optional: Banner or Section Title */}
-      {/* <Banner /> */}
       <FoodData selectedCategory={category} />
     </div>
   );

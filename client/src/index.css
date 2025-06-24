@@ -1,0 +1,15 @@
+/* Hide UI in print, only show receipt */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+}
+
+/* Default hide receipt in normal screen */
+.print-only {
+  display: none;
+}

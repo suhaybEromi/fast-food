@@ -5,12 +5,14 @@ import BackHome from "./BackHome";
 import { formatMoney } from "../utils/formatMoney";
 import { MdDeleteForever } from "react-icons/md";
 import Receipt from "./Receipt";
+import { useNavigate } from "react-router-dom";
 
 export default function Cart() {
   const { cartItems, fetchCart, removeCart, createOrder } =
     useContext(FoodContext);
   const [isPrinting, setIsPrinting] = useState(false);
   const receiptRef = useRef();
+  const navigate = useNavigate();
 
   const subtotal = cartItems.reduce(
     (acc, item) => acc + parseFloat(item.totalPrice),
@@ -33,6 +35,7 @@ export default function Cart() {
       if (confirmOrder) {
         await createOrder(); // Save to DB
         await fetchCart(); // Refresh cart (it will be empty)
+        navigate("/");
       }
       setIsPrinting(false);
       window.onafterprint = null; // Clean up
@@ -47,7 +50,9 @@ export default function Cart() {
 
   return (
     <Container className="my-5">
-      <BackHome />
+      <div className="no-print">
+        <BackHome />
+      </div>
 
       {/* Only show receipt for printing */}
       {isPrinting && (
