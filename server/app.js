@@ -12,11 +12,13 @@ const userRoutes = require("./routes/user");
 const path = require("path");
 const cookieParser = require("cookie-parser");
 
+app.use(cookieParser());
 app.use("/foods", foodRoutes);
 app.use("/cart", cartRoutes);
 app.use("/order", orderRoutes);
 app.use("/user", userRoutes);
-app.use(cookieParser());
+
+// Add error handling or input validation as needed.
 
 app.use("/images", express.static(path.join(__dirname, "images")));
 

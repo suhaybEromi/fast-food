@@ -10,21 +10,12 @@ exports.getAllFoods = async (req, res, next) => {
       price: Number(food.price),
     }));
 
-    res
-      .status(200)
-      .json({ message: "Foods retrieved successfully", foods: formattedFoods });
+    res.status(200).json({
+      message: "Foods retrieved successfully",
+      foods: formattedFoods,
+    });
   } catch (error) {
     console.error("Error in getAllFoods:", error);
-    res.status(500).json({ message: "Internal server error" });
-  }
-};
-
-exports.getLatestFoods = async (req, res) => {
-  try {
-    const foods = await Food.find().sort({ createdAt: -1 }).limit(3);
-    res.status(200).json({ foods });
-  } catch (error) {
-    console.error("Error fetching latest foods:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -59,6 +50,7 @@ exports.addFood = async (req, res, next) => {
       price: parseFloat(price),
       category,
       imageUrl,
+      user: req.user,
     });
 
     await newFood.save();
@@ -76,28 +68,33 @@ exports.updateFood = async (req, res, next) => {
   const { name, description, price, category } = req.body;
 
   try {
-    const food = await Food.findByIdAndUpdate(
-      foodId,
-      { name, description, price: parseFloat(price), category },
-      { new: true },
-    );
+    const food = await Food.findById(foodId);
     if (!food) {
       return res.status(404).json({ message: "Food item not found" });
     }
 
+    // Validate image presence if no old image and no new file
     if (!req.file && !food.imageUrl) {
       return res.status(400).json({ message: "Image file is required" });
     }
 
+    // Update fields
+    food.name = name;
+    food.description = description;
+    food.price = parseFloat(price);
+    food.category = category;
+    food.user = req.user;
+
     if (req.file) {
+      // Delete old image if exists
       if (food.imageUrl && fs.existsSync(food.imageUrl)) {
         try {
-          fs.unlinkSync(food.imageUrl); // delete old image file
+          fs.unlinkSync(food.imageUrl);
         } catch (err) {
           console.warn("Could not delete old image:", err.message);
         }
       }
-      food.imageUrl = req.file.path; // set new image path
+      food.imageUrl = req.file.path;
     }
 
     await food.save();
@@ -117,18 +114,14 @@ exports.deleteFood = async (req, res, next) => {
       return res.status(404).json({ message: "Food item not found" });
     }
 
-    if (!food.imageUrl) {
-      return res.status(400).json({ message: "Image file is required" });
-    }
-
+    // Delete image file if exists
     if (food.imageUrl && fs.existsSync(food.imageUrl)) {
       try {
-        fs.unlinkSync(food.imageUrl); // delete image file
+        fs.unlinkSync(food.imageUrl);
       } catch (err) {
         console.warn("Could not delete image:", err.message);
       }
     }
-    // Successfully deleted food item
 
     res.status(200).json({ message: "Food item deleted successfully" });
   } catch (error) {
