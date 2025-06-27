@@ -73,6 +73,13 @@ exports.updateFood = async (req, res, next) => {
       return res.status(404).json({ message: "Food item not found" });
     }
 
+    // Authorization check
+    if (food.user.toString() !== req.user._id.toString()) {
+      return res
+        .status(403)
+        .json({ message: "You are not allowed to update this food item" });
+    }
+
     // Validate image presence if no old image and no new file
     if (!req.file && !food.imageUrl) {
       return res.status(400).json({ message: "Image file is required" });
@@ -109,9 +116,16 @@ exports.updateFood = async (req, res, next) => {
 exports.deleteFood = async (req, res, next) => {
   const foodId = req.params.id;
   try {
-    const food = await Food.findByIdAndDelete(foodId);
+    const food = await Food.findById(foodId);
     if (!food) {
       return res.status(404).json({ message: "Food item not found" });
+    }
+
+    // Authorization check
+    if (food.user.toString() !== req.user._id.toString()) {
+      return res
+        .status(403)
+        .json({ message: "You are not allowed to delete this food item" });
     }
 
     // Delete image file if exists
@@ -122,6 +136,8 @@ exports.deleteFood = async (req, res, next) => {
         console.warn("Could not delete image:", err.message);
       }
     }
+
+    await Food.findByIdAndUpdate(foodId);
 
     res.status(200).json({ message: "Food item deleted successfully" });
   } catch (error) {
