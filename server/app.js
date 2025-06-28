@@ -2,7 +2,12 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const mongoose = require("mongoose");
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  }),
+);
 require("dotenv").config();
 app.use(express.json());
 const foodRoutes = require("./routes/food");

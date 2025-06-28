@@ -2,15 +2,14 @@ const Cart = require("../models/cart");
 const Food = require("../models/food");
 
 exports.getCart = async (req, res) => {
-  const userId = req.user?._id || req.params.userId;
+  const userId = req.user._id;
+
   try {
     const cart = await Cart.findOne({ userId }).populate("items.foodId");
-
     if (!cart) {
-      return res.status(404).json({ message: "Cart not found" });
+      return res.status(200).json({ cartItems: [] });
     }
-
-    res.status(200).json({ cartItems: cart.items });
+    return res.status(200).json({ cartItems: cart.items, user: req.user });
   } catch (error) {
     console.error("Error fetching cart:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -66,7 +65,8 @@ exports.addToCart = async (req, res) => {
 };
 
 exports.removeCart = async (req, res) => {
-  const { userId, foodId } = req.params;
+  const foodId = req.params.foodId;
+  const userId = req.user._id;
 
   try {
     const cart = await Cart.findOne({ userId });
@@ -74,6 +74,7 @@ exports.removeCart = async (req, res) => {
       return res.status(404).json({ message: "Cart not found" });
     }
 
+    // Remove item matching the foodId
     cart.items = cart.items.filter(item => item.foodId.toString() !== foodId);
     await cart.save();
 

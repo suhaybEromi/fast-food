@@ -32,9 +32,9 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({ storage, fileFilter });
 
-router.get("/food", auth, foodController.getAllFoods);
+router.get("/food", foodController.getAllFoods);
 
-router.get("/food/:id", auth, foodController.getFoodById);
+router.get("/food/:id", foodController.getFoodById);
 
 // Apply multer only on POST route
 router.post("/add-food", auth, upload.single("image"), foodController.addFood);

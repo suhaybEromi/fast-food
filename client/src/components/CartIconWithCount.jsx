@@ -1,7 +1,6 @@
 import { useContext } from "react";
 import { FoodContext } from "../context/FoodContext";
 import { FaShoppingCart } from "react-icons/fa";
-import Login from "../page/Login";
 
 export default function CartIconWithCount() {
   const { cartItems } = useContext(FoodContext);

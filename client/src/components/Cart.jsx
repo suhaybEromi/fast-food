@@ -8,8 +8,9 @@ import Receipt from "./Receipt";
 import { useNavigate } from "react-router-dom";
 
 export default function Cart() {
-  const { cartItems, fetchCart, removeCart, createOrder } =
+  const { cartItems, fetchCart, user, removeCart, createOrder } =
     useContext(FoodContext);
+
   const [isPrinting, setIsPrinting] = useState(false);
   const receiptRef = useRef();
   const navigate = useNavigate();
@@ -20,25 +21,36 @@ export default function Cart() {
   );
 
   const handleOrder = () => {
+    if (!user) {
+      alert("Please sign in to place an order");
+      navigate("/signin");
+      return;
+    }
     if (cartItems.length === 0) return;
+
+    // Step 1: Confirm before print dialog
+    const confirmPrint = window.confirm("Do you want to print the receipt?");
+    if (!confirmPrint) return;
 
     setIsPrinting(true);
 
-    // Step 1: Wait for DOM to update
+    // Step 2: Delay so receipt appears in DOM for printing
     setTimeout(() => {
-      window.print(); // open print dialog
+      window.print();
     }, 100);
 
-    // Step 2: Handle after print
+    // Step 3: After print dialog closes, confirm if printed
     const onPrintClose = async () => {
-      const confirmOrder = window.confirm("Whether to print it or not?");
+      const confirmOrder = window.confirm("Did you print the receipt?");
       if (confirmOrder) {
-        await createOrder(); // Save to DB
-        await fetchCart(); // Refresh cart (it will be empty)
+        await createOrder(); // Save order in DB
+        await fetchCart(); // Refresh cart (should be empty)
         navigate("/");
+      } else {
+        // User canceled printing — keep cart intact
+        setIsPrinting(false);
       }
-      setIsPrinting(false);
-      window.onafterprint = null; // Clean up
+      window.onafterprint = null; // Cleanup event listener
     };
 
     window.onafterprint = onPrintClose;
@@ -61,7 +73,7 @@ export default function Cart() {
         </div>
       )}
 
-      {/* Your cart UI (will not show when printing) */}
+      {/* Cart UI (hidden when printing) */}
       <div className="no-print">
         <h2 className="mb-4 mt-5 fw-bold">🛒 Your Cart</h2>
         <Table responsive bordered hover className="align-middle text-center">
@@ -102,7 +114,7 @@ export default function Cart() {
                   <td>
                     <button
                       className="btn text-danger border-0 fs-4"
-                      onClick={() => removeCart(item.foodId._id)}
+                      onClick={() => removeCart(item.foodId._id || item.foodId)}
                     >
                       <MdDeleteForever />
                     </button>

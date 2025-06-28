@@ -5,10 +5,8 @@ import { Link } from "react-router-dom";
 import { FoodContext } from "../context/FoodContext";
 import { formatMoney } from "../utils/formatMoney";
 
-export default function FoodData(props) {
-  const selectedCategory = props.selectedCategory;
+export default function FoodData({ selectedCategory, user }) {
   const { addToCart } = useContext(FoodContext);
-
   const [foods, setFoods] = useState([]);
   const [loading, setLoading] = useState(true);
   const [quantities, setQuantities] = useState({});
@@ -95,34 +93,40 @@ export default function FoodData(props) {
                     IQD {formatMoney(food.price * (quantities[food._id] || 1))}
                   </Card.Text>
 
-                  {/* Quantity Controls */}
-                  <div className="d-flex justify-content-center align-items-center mb-3">
-                    <Button
-                      variant="outline-secondary"
-                      size="sm"
-                      className="me-2"
-                      onClick={() => changeQuantity(food._id, -1)}
-                    >
-                      -
-                    </Button>
-                    <span className="px-2">{quantities[food._id] || 1}</span>
-                    <Button
-                      variant="outline-secondary"
-                      size="sm"
-                      className="ms-2"
-                      onClick={() => changeQuantity(food._id, 1)}
-                    >
-                      +
-                    </Button>
-                  </div>
-                  <div className="text-start">
-                    <Button
-                      variant="primary"
-                      onClick={() => handleAddToCart(food)}
-                    >
-                      Add To Cart
-                    </Button>
-                  </div>
+                  {/* Show quantity + cart only if user is logged in */}
+                  {user && (
+                    <>
+                      <div className="d-flex justify-content-center align-items-center mb-3">
+                        <Button
+                          variant="outline-secondary"
+                          size="sm"
+                          className="me-2"
+                          onClick={() => changeQuantity(food._id, -1)}
+                        >
+                          -
+                        </Button>
+                        <span className="px-2">
+                          {quantities[food._id] || 1}
+                        </span>
+                        <Button
+                          variant="outline-secondary"
+                          size="sm"
+                          className="ms-2"
+                          onClick={() => changeQuantity(food._id, 1)}
+                        >
+                          +
+                        </Button>
+                      </div>
+                      <div className="text-start">
+                        <Button
+                          variant="primary"
+                          onClick={() => handleAddToCart(food)}
+                        >
+                          Add To Cart
+                        </Button>
+                      </div>
+                    </>
+                  )}
                 </Card.Body>
               </Card>
             </Col>

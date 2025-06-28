@@ -11,7 +11,7 @@ export default function FoodDetail() {
   const { id } = useParams();
   const [food, setFood] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { addToCart } = useContext(FoodContext);
+  const { addToCart, user } = useContext(FoodContext); // 👈 get user from context
 
   const detailFood = async () => {
     try {
@@ -46,19 +46,21 @@ export default function FoodDetail() {
   return (
     <Container className="my-5">
       <BackHome />
-      <div className="d-flex justify-content-end">
-        <Link
-          to="/cart"
-          className="text-decoration-none text-secondary position-relative me-2"
-        >
-          <CartIconWithCount />
-        </Link>
-      </div>
+
+      {user && (
+        <div className="d-flex justify-content-end">
+          <Link
+            to="/cart"
+            className="text-decoration-none text-secondary position-relative me-2"
+          >
+            <CartIconWithCount />
+          </Link>
+        </div>
+      )}
 
       <Row className="justify-content-center mt-4">
         <Col md={8} lg={6}>
           <Card className="shadow rounded-4 p-4 border-0">
-            {/* Image container with max height */}
             <div
               className="rounded-4 overflow-hidden mb-3 text-center"
               style={{
@@ -82,16 +84,17 @@ export default function FoodDetail() {
             <Card.Body className="text-center">
               <Card.Title className="fs-3">{food.name}</Card.Title>
               <Card.Text className="text-muted">{food.description}</Card.Text>
-              <h5 className=" mb-3">IQD {formatMoney(food.price || 1)}</h5>
+              <h5 className="mb-3">IQD {formatMoney(food.price || 1)}</h5>
 
-              <div className="mt-4">
-                <Button
-                  variant="primary"
-                  className="me-2"
-                  onClick={() => addToCart(food, 1)}
-                >
-                  Add to Cart
-                </Button>
+              <div className="mt-4 d-flex justify-content-center gap-3">
+                {user && (
+                  <Button
+                    variant="primary"
+                    onClick={() => addToCart(food._id, 1)}
+                  >
+                    Add to Cart
+                  </Button>
+                )}
                 <Link to="/" className="btn btn-outline-secondary">
                   Back
                 </Link>

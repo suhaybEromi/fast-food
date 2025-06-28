@@ -27,13 +27,14 @@ exports.login = async (req, res) => {
     if (!user) {
       return res.status(400).json({ message: "Invalid email" });
     }
+
     const passwordValid = await bcrypt.compare(password, user.password);
     if (!passwordValid) {
       return res.status(400).json({ message: "Invalid password" });
     }
 
     const token = jwt.sign(
-      { userId: user._id, username: user.username },
+      { _id: user._id, username: user.username },
       process.env.JWT_SECRET,
       { expiresIn: "1d" },
     );
@@ -41,11 +42,18 @@ exports.login = async (req, res) => {
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "Strict",
+      sameSite: "lax",
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     });
 
-    res.status(200).json({ message: "Login successful" });
+    res.status(200).json({
+      message: "Login successful",
+      user: {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+      },
+    });
   } catch (error) {
     console.error("Error during login:", error);
     res.status(500).json({ message: "Internal server error" });
