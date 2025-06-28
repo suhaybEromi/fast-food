@@ -137,7 +137,7 @@ exports.deleteFood = async (req, res, next) => {
       }
     }
 
-    await Food.findByIdAndUpdate(foodId);
+    await Food.findByIdAndDelete(foodId);
 
     res.status(200).json({ message: "Food item deleted successfully" });
   } catch (error) {

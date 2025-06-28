@@ -3,7 +3,7 @@ const { Schema } = mongoose;
 
 const orderSchema = new Schema(
   {
-    userId: { type: Schema.Types.ObjectId, ref: "User", required: false },
+    userId: { type: Schema.Types.ObjectId, ref: "User" },
     items: [
       {
         foodId: { type: Schema.Types.ObjectId, ref: "Food" },
@@ -13,7 +13,7 @@ const orderSchema = new Schema(
         totalPrice: { type: Number, required: true },
       },
     ],
-    message: { type: String, required: false },
+    message: { type: String },
   },
   { timestamps: true },
 );
