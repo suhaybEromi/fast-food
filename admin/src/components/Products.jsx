@@ -3,7 +3,9 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { MdDeleteForever } from "react-icons/md";
 import { toast, ToastContainer, Bounce } from "react-toastify";
+import { Link } from "react-router-dom"; // 👈 Import Link
 import "react-toastify/dist/ReactToastify.css";
+import { formatMoney } from "../utils/formatMoney";
 
 export default function Products() {
   const [foods, setFoods] = useState([]);
@@ -14,7 +16,6 @@ export default function Products() {
       const response = await axios.get("http://localhost:4000/foods/food");
       setFoods(response.data.foods);
     } catch (error) {
-      console.error("Error fetching food data:", error);
       toast.error("❌ Failed to load food data.", {
         position: "top-center",
         autoClose: 4000,
@@ -73,20 +74,7 @@ export default function Products() {
 
   return (
     <>
-      {/* Toast container for notifications */}
-      <ToastContainer
-        position="top-center"
-        autoClose={2000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick={false}
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-        transition={Bounce}
-      />
+      <ToastContainer />
 
       {loading ? (
         <div className="text-center my-5">
@@ -116,8 +104,15 @@ export default function Products() {
                 {foods.map((product, index) => (
                   <tr key={product._id} className="align-middle text-center">
                     <td>{index + 1}</td>
-                    <td>{product.name}</td>
-                    <td>{product.price.toLocaleString()} IQD</td>
+                    <td>
+                      <Link
+                        to={`/foods/${product._id}`}
+                        className="text-decoration-none text-dark fw-semibold"
+                      >
+                        {product.name}
+                      </Link>
+                    </td>
+                    <td>{formatMoney(product.price || 1)} IQD</td>
                     <td
                       style={{
                         maxWidth: "200px",
@@ -131,16 +126,18 @@ export default function Products() {
                     </td>
                     <td>{product.category}</td>
                     <td>
-                      <Image
-                        src={`http://localhost:4000/${product.imageUrl}`}
-                        alt={product.name}
-                        rounded
-                        style={{
-                          width: "60px",
-                          height: "60px",
-                          objectFit: "cover",
-                        }}
-                      />
+                      <Link to={`/foods/${product._id}`}>
+                        <Image
+                          src={`http://localhost:4000/${product.imageUrl}`}
+                          alt={product.name}
+                          rounded
+                          style={{
+                            width: "60px",
+                            height: "60px",
+                            objectFit: "cover",
+                          }}
+                        />
+                      </Link>
                     </td>
                     <td>{new Date(product.createdAt).toLocaleString()}</td>
                     <td>

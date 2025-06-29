@@ -3,6 +3,7 @@ import Sidebar from "./components/Sidebar";
 import Products from "./components/Products";
 import AddProduct from "./components/AddProduct";
 import { Container, Row, Col } from "react-bootstrap";
+import FoodDetail from "./components/FoodDetail";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
                 element={<div>Welcome! Choose a menu item.</div>}
               />
               <Route path="/product" element={<Products />} />
+              <Route path="/foods/:id" element={<FoodDetail />} />
               <Route path="/add-product" element={<AddProduct />} />
             </Routes>
           </Col>
