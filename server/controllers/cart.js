@@ -1,29 +1,26 @@
 const Cart = require("../models/cart");
 const Food = require("../models/food");
+const createError = require("../middlewares/createError");
 
-exports.getCart = async (req, res) => {
+exports.getCart = async (req, res, next) => {
   const userId = req.user._id;
 
   try {
     const cart = await Cart.findOne({ userId }).populate("items.foodId");
-    if (!cart) {
-      return res.status(200).json({ cartItems: [] });
-    }
+    if (!cart) return res.status(200).json({ cartItems: [] });
+
     return res.status(200).json({ cartItems: cart.items, user: req.user });
   } catch (error) {
-    console.error("Error fetching cart:", error);
-    res.status(500).json({ message: "Internal server error" });
+    next(error);
   }
 };
 
-exports.addToCart = async (req, res) => {
+exports.addToCart = async (req, res, next) => {
   const { userId, foodId, quantity } = req.body;
 
   try {
     const food = await Food.findById(foodId);
-    if (!food) {
-      return res.status(404).json({ message: "Food item not found" });
-    }
+    if (!food) return next(createError(404, "Food item not found"));
 
     const price = parseFloat(food.price);
     const totalPrice = (price * quantity).toFixed(3);
@@ -59,20 +56,17 @@ exports.addToCart = async (req, res) => {
       cartItems: cart.items,
     });
   } catch (error) {
-    console.error("Add to cart error:", error);
-    res.status(500).json({ message: "Server error while adding to cart" });
+    next(error);
   }
 };
 
-exports.removeCart = async (req, res) => {
+exports.removeCart = async (req, res, next) => {
   const foodId = req.params.foodId;
   const userId = req.user._id;
 
   try {
     const cart = await Cart.findOne({ userId });
-    if (!cart) {
-      return res.status(404).json({ message: "Cart not found" });
-    }
+    if (!cart) return next(createError(404, "Cart not found"));
 
     // Remove item matching the foodId
     cart.items = cart.items.filter(item => item.foodId.toString() !== foodId);
@@ -80,7 +74,6 @@ exports.removeCart = async (req, res) => {
 
     res.status(200).json({ message: "Item removed", cartItems: cart.items });
   } catch (error) {
-    console.error("Remove from cart error:", error);
-    res.status(500).json({ message: "Server error while removing from cart" });
+    next(error);
   }
 };

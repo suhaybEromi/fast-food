@@ -24,6 +24,7 @@ const orderRoutes = require("./routes/order");
 const userRoutes = require("./routes/user");
 const path = require("path");
 const cookieParser = require("cookie-parser");
+const errorHandler = require("./middlewares/errorHandler");
 
 app.use(cookieParser());
 app.use("/foods", foodRoutes);
@@ -34,6 +35,8 @@ app.use("/user", userRoutes);
 // Add error handling or input validation as needed.
 
 app.use("/images", express.static(path.join(__dirname, "images")));
+
+app.use(errorHandler);
 
 const connectDB = async () => {
   try {

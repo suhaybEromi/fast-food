@@ -1,7 +1,8 @@
 const Order = require("../models/order");
 const Cart = require("../models/cart");
+const createError = require("../middlewares/createError");
 
-exports.getOrders = async (req, res) => {
+exports.getOrders = async (req, res, next) => {
   const { userId } = req.params;
   try {
     const orders = await Order.find({ userId })
@@ -9,20 +10,20 @@ exports.getOrders = async (req, res) => {
       .exec();
     return res.status(200).json(orders);
   } catch (error) {
-    console.error("Error fetching orders:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    next(error);
   }
 };
 
-exports.createOrder = async (req, res) => {
+exports.createOrder = async (req, res, next) => {
   const { userId } = req.body;
+
+  if (!userId) return next(createError(400, "User ID is required"));
 
   try {
     const cart = await Cart.findOne({ userId }).populate("items.foodId");
 
-    if (!cart || cart.items.length === 0) {
-      return res.status(400).json({ message: "Cart is empty" });
-    }
+    if (!cart || cart.items.length === 0)
+      return next(createError(400, "Cart is empty"));
 
     const orderItems = cart.items.map(item => ({
       foodId: item.foodId._id,
@@ -44,7 +45,6 @@ exports.createOrder = async (req, res) => {
 
     res.status(201).json({ message: "Order placed", orderId: newOrder._id });
   } catch (error) {
-    console.error("Error creating order:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    next(error);
   }
 };

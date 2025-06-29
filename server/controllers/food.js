@@ -1,5 +1,6 @@
 const Food = require("../models/food");
 const fs = require("fs");
+const createError = require("../middlewares/createError");
 
 exports.getAllFoods = async (req, res, next) => {
   try {
@@ -15,8 +16,7 @@ exports.getAllFoods = async (req, res, next) => {
       foods: formattedFoods,
     });
   } catch (error) {
-    console.error("Error in getAllFoods:", error);
-    res.status(500).json({ message: "Internal server error" });
+    next(error);
   }
 };
 
@@ -24,22 +24,18 @@ exports.getFoodById = async (req, res, next) => {
   const foodId = req.params.id;
   try {
     const food = await Food.findById(foodId);
-    if (!food) {
-      return res.status(404).json({ message: "Food item not found" });
-    }
+    if (!food) return next(createError(404, "Food item not found"));
+
     res.status(200).json({ message: "Food item retrieved successfully", food });
   } catch (error) {
-    console.error("Error in getFoodById:", error);
-    res.status(500).json({ message: "Internal server error" });
+    next(error);
   }
 };
 
 exports.addFood = async (req, res, next) => {
   const { name, description, price, category } = req.body;
 
-  if (!req.file) {
-    return res.status(400).json({ message: "Image file is required" });
-  }
+  if (!req.file) return next(createError(400, "Image file is required"));
 
   const imageUrl = req.file.path;
 
@@ -58,8 +54,10 @@ exports.addFood = async (req, res, next) => {
       .status(201)
       .json({ message: "Food item added successfully", food: newFood });
   } catch (error) {
-    console.error("Error in addFood:", error);
-    res.status(500).json({ message: "Internal server error" });
+    if (fs.existsSync(imageUrl)) {
+      fs.unlinkSync(imageUrl);
+    }
+    next(error);
   }
 };
 
@@ -69,21 +67,17 @@ exports.updateFood = async (req, res, next) => {
 
   try {
     const food = await Food.findById(foodId);
-    if (!food) {
-      return res.status(404).json({ message: "Food item not found" });
-    }
+    if (!food) return next(createError(404, "Food item not found"));
 
     // Authorization check
-    if (food.user.toString() !== req.user._id.toString()) {
-      return res
-        .status(403)
-        .json({ message: "You are not allowed to update this food item" });
-    }
+    if (food.user.toString() !== req.user._id.toString())
+      return next(
+        createError(403, "You are not allowed to update this food item"),
+      );
 
     // Validate image presence if no old image and no new file
-    if (!req.file && !food.imageUrl) {
-      return res.status(400).json({ message: "Image file is required" });
-    }
+    if (!req.file && !food.imageUrl)
+      return next(createError(400, "Image file is required"));
 
     // Update fields
     food.name = name;
@@ -98,7 +92,9 @@ exports.updateFood = async (req, res, next) => {
         try {
           fs.unlinkSync(food.imageUrl);
         } catch (err) {
-          console.warn("Could not delete old image:", err.message);
+          return next(
+            createError(500, `Could not delete old image: ${err.message}`),
+          );
         }
       }
       food.imageUrl = req.file.path;
@@ -108,8 +104,7 @@ exports.updateFood = async (req, res, next) => {
 
     res.status(200).json({ message: "Food item updated successfully", food });
   } catch (error) {
-    console.error("Error in updateFood:", error);
-    res.status(500).json({ message: "Internal server error" });
+    next(error);
   }
 };
 
@@ -117,23 +112,22 @@ exports.deleteFood = async (req, res, next) => {
   const foodId = req.params.id;
   try {
     const food = await Food.findById(foodId);
-    if (!food) {
-      return res.status(404).json({ message: "Food item not found" });
-    }
+    if (!food) return next(createError(404, "Food item not found"));
 
     // Authorization check
-    if (food.user.toString() !== req.user._id.toString()) {
-      return res
-        .status(403)
-        .json({ message: "You are not allowed to delete this food item" });
-    }
+    if (food.user.toString() !== req.user._id.toString())
+      return next(
+        createError(403, "You are not allowed to delete this food item"),
+      );
 
     // Delete image file if exists
     if (food.imageUrl && fs.existsSync(food.imageUrl)) {
       try {
         fs.unlinkSync(food.imageUrl);
       } catch (err) {
-        console.warn("Could not delete image:", err.message);
+        return next(
+          createError(500, `Could not delete old image: ${err.message}`),
+        );
       }
     }
 
@@ -141,7 +135,6 @@ exports.deleteFood = async (req, res, next) => {
 
     res.status(200).json({ message: "Food item deleted successfully" });
   } catch (error) {
-    console.error("Error in deleteFood:", error);
-    res.status(500).json({ message: "Internal server error" });
+    next(error);
   }
 };
