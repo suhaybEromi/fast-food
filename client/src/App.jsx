@@ -6,6 +6,7 @@ import FoodContextProvider from "./context/FoodContext";
 import Cart from "./components/Cart";
 import Login from "./page/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { ToastContainer } from "react-toastify";
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
 
             <Route path="/signin" element={<Login />} />
           </Routes>
+          <ToastContainer position="top-left" autoClose={3000} />
         </FoodContextProvider>
       </BrowserRouter>
     </>

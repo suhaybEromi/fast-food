@@ -3,6 +3,8 @@ const router = express.Router();
 const foodController = require("../controllers/food");
 const multer = require("multer");
 const fs = require("fs");
+const { foodValidation } = require("../validators/food");
+const { validate } = require("../middlewares/validate");
 
 // Set up multer
 const storage = multer.diskStorage({
@@ -36,11 +38,19 @@ router.get("/food", foodController.getAllFoods);
 router.get("/food/:id", foodController.getFoodById);
 
 // Apply multer only on POST route
-router.post("/add-food", upload.single("image"), foodController.addFood);
+router.post(
+  "/add-food",
+  upload.single("image"),
+  foodValidation,
+  validate,
+  foodController.addFood,
+);
 
 router.put(
   "/update-food/:id",
   upload.single("image"),
+  foodValidation,
+  validate,
   foodController.updateFood,
 );
 router.delete("/delete/:id", foodController.deleteFood);

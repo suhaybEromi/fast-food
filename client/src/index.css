@@ -13,3 +13,30 @@
 .print-only {
   display: none;
 }
+
+/* design card and root file */
+.food-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.food-card:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.15);
+}
+
+.food-img-container {
+  background: #fff;
+  height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-top-left-radius: 1rem;
+  border-top-right-radius: 1rem;
+  overflow: hidden;
+}
+
+.food-img {
+  max-height: 160px;
+  width: auto;
+  object-fit: contain;
+}

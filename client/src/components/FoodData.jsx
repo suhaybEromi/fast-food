@@ -4,12 +4,14 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import { FoodContext } from "../context/FoodContext";
 import { formatMoney } from "../utils/formatMoney";
+import { handleAxiosError } from "../utils/handleAxiosError";
 
 export default function FoodData({ selectedCategory, user }) {
   const { addToCart } = useContext(FoodContext);
   const [foods, setFoods] = useState([]);
   const [loading, setLoading] = useState(true);
   const [quantities, setQuantities] = useState({});
+  const [error, setError] = useState("");
 
   const displayFood = async () => {
     try {
@@ -21,8 +23,8 @@ export default function FoodData({ selectedCategory, user }) {
         initialQuantities[food._id] = 1;
       });
       setQuantities(initialQuantities);
-    } catch (error) {
-      console.error("Error fetching food data:", error);
+    } catch (err) {
+      handleAxiosError(err, setError);
     } finally {
       setLoading(false);
     }
@@ -52,79 +54,89 @@ export default function FoodData({ selectedCategory, user }) {
 
   return (
     <Container className="mt-4">
+      {/* Error Alert */}
+      {error && (
+        <div
+          style={{
+            backgroundColor: "#ffe0e0",
+            color: "#a30000",
+            border: "1px solid #f5c2c7",
+            padding: "12px 16px",
+            borderRadius: "8px",
+            marginBottom: "20px",
+            fontWeight: "500",
+            textAlign: "center",
+          }}
+        >
+          ⚠️ {error}
+        </div>
+      )}
+
+      {/* Loading Spinner */}
       {loading ? (
-        <div className="text-center my-5">
-          <Spinner animation="border" role="status" />
-          <div>Loading...</div>
+        <div className="d-flex justify-content-center align-items-center my-5 flex-column">
+          <Spinner animation="border" variant="primary" />
+          <div className="mt-2">Loading foods...</div>
         </div>
       ) : filteredFoods.length === 0 ? (
-        <div className="text-center">No Food Available</div>
+        <div className="text-center fs-5 text-muted mt-4">
+          No Food Available
+        </div>
       ) : (
-        <Row>
-          {filteredFoods.map((food, index) => (
-            <Col key={index} md={3} className="mb-4">
-              <Card className="shadow rounded-4 h-100">
-                <div
-                  className="text-center overflow-hidden rounded-top-4"
-                  style={{
-                    maxHeight: "200px",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
+        <Row className="g-4">
+          {filteredFoods.map(food => (
+            <Col key={food._id} xs={12} sm={6} md={4} lg={3}>
+              <Card className="food-card h-100 rounded-4 shadow-sm border-0">
+                <Link
+                  to={`/foods/${food._id}`}
+                  className="text-decoration-none"
                 >
-                  <Link to={`/foods/${food._id}`}>
+                  <div className="food-img-container">
                     <img
                       src={`http://localhost:4000/${food.imageUrl}`}
                       alt={food.name}
-                      style={{
-                        maxHeight: "200px",
-                        maxWidth: "100%",
-                        objectFit: "contain",
-                        padding: "10px",
-                      }}
+                      className="food-img"
                     />
-                  </Link>
-                </div>
+                  </div>
+                </Link>
 
-                <Card.Body className="text-center d-flex flex-column">
-                  <Card.Title className="fs-5">{food.name}</Card.Title>
-                  <Card.Text className="text-muted mb-2">
+                <Card.Body className="d-flex flex-column align-items-center text-center px-3">
+                  <Card.Title className="fs-5 fw-semibold mb-1 text-dark">
+                    {food.name}
+                  </Card.Title>
+                  <Card.Text className="text-success fw-bold fs-6 mb-3">
                     IQD {formatMoney(food.price * (quantities[food._id] || 1))}
                   </Card.Text>
 
-                  {/* Show quantity + cart only if user is logged in */}
                   {user && (
                     <>
-                      <div className="d-flex justify-content-center align-items-center mb-3">
+                      <div className="d-flex align-items-center mb-3">
                         <Button
                           variant="outline-secondary"
                           size="sm"
-                          className="me-2"
                           onClick={() => changeQuantity(food._id, -1)}
                         >
-                          -
+                          −
                         </Button>
-                        <span className="px-2">
+                        <span className="mx-3 fw-bold fs-6">
                           {quantities[food._id] || 1}
                         </span>
                         <Button
                           variant="outline-secondary"
                           size="sm"
-                          className="ms-2"
                           onClick={() => changeQuantity(food._id, 1)}
                         >
                           +
                         </Button>
                       </div>
-                      <div className="text-start">
-                        <Button
-                          variant="primary"
-                          onClick={() => handleAddToCart(food)}
-                        >
-                          Add To Cart
-                        </Button>
-                      </div>
+
+                      <Button
+                        variant="dark"
+                        className="w-100 fw-semibold rounded-3"
+                        onClick={() => handleAddToCart(food)}
+                      >
+                        🍔 Add to Cart
+                      </Button>
                     </>
                   )}
                 </Card.Body>

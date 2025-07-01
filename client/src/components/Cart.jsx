@@ -8,7 +8,7 @@ import Receipt from "./Receipt";
 import { useNavigate } from "react-router-dom";
 
 export default function Cart() {
-  const { cartItems, fetchCart, user, removeCart, createOrder } =
+  const { cartItems, fetchCart, loadingUser, user, removeCart, createOrder } =
     useContext(FoodContext);
 
   const [isPrinting, setIsPrinting] = useState(false);
@@ -20,45 +20,57 @@ export default function Cart() {
     0,
   );
 
+  // Redirect to sign-in if user is not logged in after loading finishes
+  // useEffect(() => {
+  //   if (!loadingUser && !user) {
+  //     navigate("/signin");
+  //   }
+  // }, [loadingUser, user, navigate]);
+
+  useEffect(() => {
+    if (!loadingUser && !user) {
+      navigate("/signin");
+    }
+  }, [loadingUser, user, navigate]);
+
+  // Fetch cart when user is loaded
+  useEffect(() => {
+    if (!loadingUser && user) {
+      fetchCart();
+    }
+  }, [loadingUser, user, fetchCart]);
+
   const handleOrder = () => {
     if (!user) {
-      alert("Please sign in to place an order");
+      window.alert("Please sign in to place an order");
       navigate("/signin");
       return;
     }
     if (cartItems.length === 0) return;
 
-    // Step 1: Confirm before print dialog
     const confirmPrint = window.confirm("Do you want to print the receipt?");
     if (!confirmPrint) return;
 
     setIsPrinting(true);
 
-    // Step 2: Delay so receipt appears in DOM for printing
     setTimeout(() => {
       window.print();
     }, 100);
 
-    // Step 3: After print dialog closes, confirm if printed
     const onPrintClose = async () => {
       const confirmOrder = window.confirm("Did you print the receipt?");
       if (confirmOrder) {
-        await createOrder(); // Save order in DB
-        await fetchCart(); // Refresh cart (should be empty)
+        await createOrder();
+        await fetchCart();
         navigate("/");
       } else {
-        // User canceled printing — keep cart intact
         setIsPrinting(false);
       }
-      window.onafterprint = null; // Cleanup event listener
+      window.onafterprint = null;
     };
 
     window.onafterprint = onPrintClose;
   };
-
-  useEffect(() => {
-    fetchCart();
-  }, []);
 
   return (
     <Container className="my-5">
@@ -66,14 +78,12 @@ export default function Cart() {
         <BackHome />
       </div>
 
-      {/* Only show receipt for printing */}
       {isPrinting && (
         <div className="print-only">
           <Receipt ref={receiptRef} cartItems={cartItems} subtotal={subtotal} />
         </div>
       )}
 
-      {/* Cart UI (hidden when printing) */}
       <div className="no-print">
         <h2 className="mb-4 mt-5 fw-bold">🛒 Your Cart</h2>
         <Table responsive bordered hover className="align-middle text-center">
@@ -143,6 +153,7 @@ export default function Cart() {
                   variant="warning"
                   className="w-100 mt-3 fw-semibold text-white"
                   onClick={handleOrder}
+                  disabled={isPrinting}
                 >
                   Order & Print
                 </Button>

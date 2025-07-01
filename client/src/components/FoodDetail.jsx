@@ -6,12 +6,14 @@ import BackHome from "./BackHome";
 import { FoodContext } from "../context/FoodContext";
 import CartIconWithCount from "./CartIconWithCount";
 import { formatMoney } from "../utils/formatMoney";
+import { handleAxiosError } from "../utils/handleAxiosError";
 
 export default function FoodDetail() {
   const { id } = useParams();
   const [food, setFood] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { addToCart, user } = useContext(FoodContext); // 👈 get user from context
+  const { addToCart, user } = useContext(FoodContext);
+  const [error, setError] = useState("");
 
   const detailFood = async () => {
     try {
@@ -19,8 +21,8 @@ export default function FoodDetail() {
         `http://localhost:4000/foods/food/${id}`,
       );
       setFood(response.data.food);
-    } catch (error) {
-      console.error("Error fetching food details:", error);
+    } catch (err) {
+      handleAxiosError(err, setError);
     } finally {
       setLoading(false);
     }
@@ -30,11 +32,20 @@ export default function FoodDetail() {
     detailFood();
   }, [id]);
 
+  const handleAddToCart = async () => {
+    setError("");
+    try {
+      await addToCart(food._id, 1);
+    } catch (err) {
+      handleAxiosError(err, setError);
+    }
+  };
+
   if (loading) {
     return (
       <Container className="text-center my-5">
         <Spinner animation="border" />
-        <div className="mt-3">Loading food details...</div>
+        <div className="mt-3">Loading...</div>
       </Container>
     );
   }
@@ -46,6 +57,23 @@ export default function FoodDetail() {
   return (
     <Container className="my-5">
       <BackHome />
+
+      {error && (
+        <div
+          style={{
+            backgroundColor: "#ffe0e0",
+            color: "#a30000",
+            border: "1px solid #f5c2c7",
+            padding: "12px 16px",
+            borderRadius: "8px",
+            marginBottom: "20px",
+            fontWeight: "500",
+            textAlign: "center",
+          }}
+        >
+          ⚠️ {error}
+        </div>
+      )}
 
       {user && (
         <div className="d-flex justify-content-end">
@@ -90,7 +118,8 @@ export default function FoodDetail() {
                 {user && (
                   <Button
                     variant="primary"
-                    onClick={() => addToCart(food._id, 1)}
+                    onClick={handleAddToCart}
+                    disabled={loading || !!error}
                   >
                     Add to Cart
                   </Button>
