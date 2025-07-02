@@ -7,6 +7,7 @@ import Cart from "./components/Cart";
 import Login from "./page/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { ToastContainer } from "react-toastify";
+import NotFound from "./components/NotFound";
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
       <BrowserRouter>
         <FoodContextProvider>
           <Routes>
+            <Route path="*" element={<NotFound />} />
             <Route path="/" element={<Home />} />
             <Route path="/foods/:id" element={<FoodDetail />} />
             <Route path="/pizza" element={<Navbar category="pizza" />} />
