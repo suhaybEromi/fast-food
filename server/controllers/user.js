@@ -23,11 +23,10 @@ exports.login = async (req, res, next) => {
   const { email, password } = req.body;
   try {
     const user = await User.findOne({ email });
-    if (!user) return next(createError(400, "Invalid email and password"));
+    if (!user) return next(createError(400, "Invalid email"));
 
     const passwordValid = await bcrypt.compare(password, user.password);
-    if (!passwordValid)
-      return next(createError(400, "Invalid email and password"));
+    if (!passwordValid) return next(createError(400, "Invalid password"));
 
     const token = jwt.sign(
       { _id: user._id, username: user.username },

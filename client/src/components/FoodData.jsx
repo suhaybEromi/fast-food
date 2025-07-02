@@ -6,8 +6,8 @@ import { FoodContext } from "../context/FoodContext";
 import { formatMoney } from "../utils/formatMoney";
 import { handleAxiosError } from "../utils/handleAxiosError";
 
-export default function FoodData({ selectedCategory, user }) {
-  const { addToCart } = useContext(FoodContext);
+export default function FoodData({ selectedCategory }) {
+  const { addToCart, user } = useContext(FoodContext);
   const [foods, setFoods] = useState([]);
   const [loading, setLoading] = useState(true);
   const [quantities, setQuantities] = useState({});

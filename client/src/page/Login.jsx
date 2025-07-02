@@ -25,6 +25,17 @@ export default function Login() {
     e.preventDefault();
     setMessage("");
     setError("");
+
+    if (formData.password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+
+    if (!isLogin && formData.username.trim() === "") {
+      setError("Please enter your full name.");
+      return;
+    }
+
     setLoading(true);
     try {
       if (isLogin) {
@@ -38,7 +49,13 @@ export default function Login() {
         setFormData({ username: "", email: "", password: "" });
       }
     } catch (err) {
-      setError(err.message || "An error occurred. Please try again.");
+      if (err.response?.data?.errors) {
+        setError(err.response.data.errors[0]?.msg || "Validation failed.");
+      } else {
+        setError(
+          err.response?.data?.error || "An error occurred. Please try again.",
+        );
+      }
     } finally {
       setLoading(false);
     }

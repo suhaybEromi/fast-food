@@ -3,10 +3,29 @@ const router = express.Router();
 const userController = require("../controllers/user");
 const { signupValidation, loginValidation } = require("../validators/user");
 const { validate } = require("../middlewares/validate");
+const rateLimit = require("express-rate-limit");
 
-router.post("/signup", signupValidation, validate, userController.signup);
+const authLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 5,
+  message: "Too many attempts, please try again in 10 minutes.",
+});
 
-router.post("/login", loginValidation, validate, userController.login);
+router.post(
+  "/signup",
+  authLimiter,
+  signupValidation,
+  validate,
+  userController.signup,
+);
+
+router.post(
+  "/login",
+  authLimiter,
+  loginValidation,
+  validate,
+  userController.login,
+);
 
 router.post("/logout", userController.logout);
 

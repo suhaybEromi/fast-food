@@ -21,12 +21,6 @@ export default function Cart() {
   );
 
   // Redirect to sign-in if user is not logged in after loading finishes
-  // useEffect(() => {
-  //   if (!loadingUser && !user) {
-  //     navigate("/signin");
-  //   }
-  // }, [loadingUser, user, navigate]);
-
   useEffect(() => {
     if (!loadingUser && !user) {
       navigate("/signin");
