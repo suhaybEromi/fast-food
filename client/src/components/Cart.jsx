@@ -109,6 +109,7 @@ export default function Cart() {
                         borderRadius: "8px",
                         objectFit: "cover",
                       }}
+                      crossOrigin="use-credentials"
                     />
                   </td>
                   <td>{item.foodId.name}</td>

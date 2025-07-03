@@ -106,6 +106,7 @@ export default function FoodDetail() {
                   maxWidth: "100%",
                   objectFit: "contain",
                 }}
+                crossOrigin="use-credentials"
               />
             </div>
 

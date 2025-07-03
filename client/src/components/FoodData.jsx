@@ -96,6 +96,7 @@ export default function FoodData({ selectedCategory }) {
                       src={`http://localhost:4000/${food.imageUrl}`}
                       alt={food.name}
                       className="food-img"
+                      crossOrigin="use-credentials"
                     />
                   </div>
                 </Link>
