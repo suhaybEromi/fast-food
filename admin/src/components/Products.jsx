@@ -131,6 +131,7 @@ export default function Products() {
                           src={`http://localhost:4000/${product.imageUrl}`}
                           alt={product.name}
                           rounded
+                          crossOrigin="use-credentials"
                           style={{
                             width: "60px",
                             height: "60px",

@@ -101,7 +101,9 @@ export default function Cart() {
                 <tr key={item._id}>
                   <td>
                     <img
-                      src={`http://localhost:4000/${item.foodId.imageUrl}`}
+                      src={`${import.meta.env.VITE_API_URL}/${
+                        item.foodId.imageUrl
+                      }`}
                       alt={item.foodId.name}
                       style={{
                         width: "50px",

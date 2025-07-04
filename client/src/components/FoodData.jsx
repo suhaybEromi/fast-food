@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { FoodContext } from "../context/FoodContext";
 import { formatMoney } from "../utils/formatMoney";
 import { handleAxiosError } from "../utils/handleAxiosError";
+import axiosInstance from "../api/axiosInstance";
 
 export default function FoodData({ selectedCategory }) {
   const { addToCart, user } = useContext(FoodContext);
@@ -15,7 +16,7 @@ export default function FoodData({ selectedCategory }) {
 
   const displayFood = async () => {
     try {
-      const response = await axios.get("http://localhost:4000/foods/food");
+      const response = await axiosInstance.get("/foods/food");
       setFoods(response.data.foods);
 
       const initialQuantities = {};
@@ -93,7 +94,9 @@ export default function FoodData({ selectedCategory }) {
                 >
                   <div className="food-img-container">
                     <img
-                      src={`http://localhost:4000/${food.imageUrl}`}
+                      src={`${
+                        import.meta.env.VITE_API_URL
+                      }/${food.imageUrl.replace(/^\/+/, "")}`}
                       alt={food.name}
                       className="food-img"
                       crossOrigin="use-credentials"

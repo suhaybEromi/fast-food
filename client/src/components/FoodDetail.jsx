@@ -7,6 +7,7 @@ import { FoodContext } from "../context/FoodContext";
 import CartIconWithCount from "./CartIconWithCount";
 import { formatMoney } from "../utils/formatMoney";
 import { handleAxiosError } from "../utils/handleAxiosError";
+import axiosInstance from "../api/axiosInstance";
 
 export default function FoodDetail() {
   const { id } = useParams();
@@ -17,9 +18,7 @@ export default function FoodDetail() {
 
   const detailFood = async () => {
     try {
-      const response = await axios.get(
-        `http://localhost:4000/foods/food/${id}`,
-      );
+      const response = await axiosInstance.get(`/foods/food/${id}`);
       setFood(response.data.food);
     } catch (err) {
       handleAxiosError(err, setError);
@@ -99,7 +98,7 @@ export default function FoodDetail() {
               }}
             >
               <img
-                src={`http://localhost:4000/${food.imageUrl}`}
+                src={`${import.meta.env.VITE_API_URL}/${food.imageUrl}`}
                 alt={food.name}
                 style={{
                   maxHeight: "200px",

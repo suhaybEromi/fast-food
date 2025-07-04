@@ -63,3 +63,15 @@ exports.logout = (req, res) => {
     })
     .json({ message: "Logged out successfully" });
 };
+
+exports.checkUser = (req, res) => {
+  const token = req.cookies.token;
+  if (!token) return res.json({ user: null });
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    res.json({ user: decoded });
+  } catch (err) {
+    res.json({ user: null });
+  }
+};

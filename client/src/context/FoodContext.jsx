@@ -1,6 +1,6 @@
-import axios from "axios";
 import { createContext, useEffect, useState } from "react";
 import { handleAxiosError } from "../utils/handleAxiosError";
+import axiosInstance from "../api/axiosInstance";
 
 export const FoodContext = createContext(null);
 
@@ -12,8 +12,8 @@ export default function FoodContextProvider({ children }) {
   // Signup user and fetch cart after signup
   const signup = async (username, email, password) => {
     try {
-      const res = await axios.post(
-        "http://localhost:4000/user/signup",
+      const res = await axiosInstance.post(
+        "/user/signup",
         { username, email, password },
         { withCredentials: true },
       );
@@ -28,8 +28,8 @@ export default function FoodContextProvider({ children }) {
   // Login user and fetch cart after login
   const login = async (email, password) => {
     try {
-      const res = await axios.post(
-        "http://localhost:4000/user/login",
+      const res = await axiosInstance.post(
+        "/user/login",
         { email, password },
         { withCredentials: true },
       );
@@ -44,11 +44,7 @@ export default function FoodContextProvider({ children }) {
   // Logout user and clear cart
   const logout = async () => {
     try {
-      await axios.post(
-        "http://localhost:4000/user/logout",
-        {},
-        { withCredentials: true },
-      );
+      await axiosInstance.post("/user/logout", {}, { withCredentials: true });
       setUser(null);
       setCartItems([]);
     } catch (err) {
@@ -61,7 +57,7 @@ export default function FoodContextProvider({ children }) {
     if (!user) return;
 
     try {
-      const res = await axios.get("http://localhost:4000/cart", {
+      const res = await axiosInstance.get("/cart", {
         withCredentials: true,
       });
       setCartItems(res.data.cartItems || []);
@@ -70,27 +66,32 @@ export default function FoodContextProvider({ children }) {
     }
   };
 
-  // Check user session on app load
   const checkUser = async () => {
     setLoadingUser(true);
     try {
-      const res = await axios.get("http://localhost:4000/cart", {
+      const res = await axiosInstance.get("/user/check-user", {
         withCredentials: true,
       });
-      if (res.data.user) {
-        setUser(res.data.user);
-        setCartItems(res.data.cartItems || []);
-      } else {
-        setUser(null);
-        setCartItems([]);
-      }
-    } catch {
+
+      setUser(res.data.user);
+      await fetchCart(); // safe to call now
+    } catch (err) {
       setUser(null);
       setCartItems([]);
     } finally {
       setLoadingUser(false);
     }
   };
+
+  useEffect(() => {
+    if (user) {
+      fetchCart();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    checkUser();
+  }, []);
 
   // Add item to cart
   const addToCart = async (foodId, quantity = 1) => {
@@ -100,8 +101,8 @@ export default function FoodContextProvider({ children }) {
     }
 
     try {
-      const res = await axios.post(
-        "http://localhost:4000/cart/add-to-cart",
+      const res = await axiosInstance.post(
+        "/cart/add-to-cart",
         { userId: user._id, foodId, quantity },
         { withCredentials: true },
       );
@@ -121,10 +122,9 @@ export default function FoodContextProvider({ children }) {
     if (!user) return;
 
     try {
-      const res = await axios.delete(
-        `http://localhost:4000/cart/remove/${foodId}`,
-        { withCredentials: true },
-      );
+      const res = await axiosInstance.delete(`/cart/remove/${foodId}`, {
+        withCredentials: true,
+      });
       if (res.status === 200) {
         setCartItems(res.data.cartItems || []);
       }
@@ -146,8 +146,8 @@ export default function FoodContextProvider({ children }) {
     }
 
     try {
-      const res = await axios.post(
-        "http://localhost:4000/order/create-order",
+      const res = await axiosInstance.post(
+        "/order/create-order",
         { userId: user._id },
         { withCredentials: true },
       );
@@ -162,9 +162,9 @@ export default function FoodContextProvider({ children }) {
     }
   };
 
-  useEffect(() => {
-    checkUser();
-  }, []);
+  // useEffect(() => {
+  //   checkUser();
+  // }, []);
 
   return (
     <FoodContext.Provider

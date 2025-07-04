@@ -65,6 +65,7 @@ export default function FoodDetail() {
               <img
                 src={`http://localhost:4000/${food.imageUrl}`}
                 alt={food.name}
+                crossOrigin="use-credentials"
                 style={{
                   maxHeight: "200px",
                   maxWidth: "100%",
