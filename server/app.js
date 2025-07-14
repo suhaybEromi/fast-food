@@ -5,9 +5,6 @@ const mongoose = require("mongoose");
 const path = require("path");
 const cookieParser = require("cookie-parser");
 require("dotenv").config();
-// const helmet = require("helmet");
-// const compression = require("compression");
-// const mongoSanitize = require("express-mongo-sanitize");
 const allowedOrigins = [process.env.CLIENT, process.env.ADMIN];
 
 app.use(
@@ -25,10 +22,6 @@ app.use(
 
 app.use(express.json());
 app.use(cookieParser());
-
-// app.use(helmet());
-// app.use(compression());
-// app.use(mongoSanitize());
 
 const foodRoutes = require("./routes/food");
 const cartRoutes = require("./routes/cart");
