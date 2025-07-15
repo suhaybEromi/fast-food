@@ -115,10 +115,10 @@ exports.deleteFood = async (req, res, next) => {
     if (!food) return next(createError(404, "Food item not found"));
 
     // Authorization check
-    if (food.user.toString() !== req.user._id.toString())
-      return next(
-        createError(403, "You are not allowed to delete this food item"),
-      );
+    // if (food.user.toString() !== req.user._id.toString())
+    //   return next(
+    //     createError(403, "You are not allowed to delete this food item"),
+    //   );
 
     // Delete image file if exists
     if (food.imageUrl && fs.existsSync(food.imageUrl)) {

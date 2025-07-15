@@ -5,26 +5,27 @@ const mongoose = require("mongoose");
 const path = require("path");
 const cookieParser = require("cookie-parser");
 require("dotenv").config();
-// const allowedOrigins = [process.env.CLIENT, process.env.ADMIN];
-// app.use(
-//   cors({
-//     origin: function (origin, callback) {
-//       if (!origin || allowedOrigins.includes(origin)) {
-//         callback(null, true);
-//       } else {
-//         callback(new Error("Not allowed by CORS"));
-//       }
-//     },
-//     credentials: true,
-//   }),
-// );
+const allowedOrigins = [process.env.CLIENT_URI, process.env.ADMIN];
 
 app.use(
   cors({
-    origin: process.env.CLIENT_URI,
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   }),
 );
+
+// app.use(
+//   cors({
+//     origin: process.env.CLIENT_URI,
+//     credentials: true,
+//   }),
+// );
 
 app.use(express.json());
 app.use(cookieParser());
