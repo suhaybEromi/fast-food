@@ -6,12 +6,16 @@ export const getFoods = async () => {
 };
 
 export const createFood = async payload => {
-  const { data } = await api.post("/food", payload);
+  const { data } = await api.post("/food", payload, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
   return data;
 };
 
 export const updateFood = async (id, payload) => {
-  const { data } = await api.put(`/food/${id}`, payload);
+  const { data } = await api.put(`/food/${id}`, payload, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
   return data;
 };
 

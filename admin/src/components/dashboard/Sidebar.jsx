@@ -21,13 +21,12 @@ const Sidebar = () => {
       <nav className="flex-1 space-y-2 p-4">
         <NavLink
           to="/"
-          end
           className={({ isActive }) =>
             `${navItem} ${isActive ? activeNavItem : ""}`
           }
         >
-          <LayoutDashboard size={20} />
-          <span>Dashboard</span>
+          <Package size={20} />
+          <span>Products</span>
         </NavLink>
 
         <NavLink
@@ -38,16 +37,6 @@ const Sidebar = () => {
         >
           <Shapes size={20} />
           <span>Categories</span>
-        </NavLink>
-
-        <NavLink
-          to="/products"
-          className={({ isActive }) =>
-            `${navItem} ${isActive ? activeNavItem : ""}`
-          }
-        >
-          <Package size={20} />
-          <span>Products</span>
         </NavLink>
       </nav>
 
