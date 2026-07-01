@@ -2,7 +2,7 @@ import asyncHandler from "../../middlewares/asyncHandler.js";
 import Category from "../../models/category.js";
 import slugify from "slugify";
 
-const getCategory = asyncHandler(async (req, res) => {
+const getCategory = asyncHandler(async (_req, res) => {
   const categories = await Category.find().sort({ createdAt: -1 });
 
   res.status(200).json({
@@ -12,7 +12,7 @@ const getCategory = asyncHandler(async (req, res) => {
 });
 
 const addCategory = asyncHandler(async (req, res) => {
-  const { title } = req.body;
+  const { title, status } = req.body;
 
   const slug = slugify(title, { lower: true, strict: true });
 
@@ -32,6 +32,7 @@ const addCategory = asyncHandler(async (req, res) => {
     title,
     slug,
     image,
+    status,
   });
 
   res.status(201).json({

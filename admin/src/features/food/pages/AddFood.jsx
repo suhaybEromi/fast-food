@@ -7,14 +7,17 @@ const AddFood = () => {
 
   const handleAdd = async formData => {
     await createFood(formData);
-    navigate("/");
+    navigate("/foods");
   };
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-slate-900">Add Food</h2>
-        <p className="text-sm text-slate-500">
+    <div className="space-y-6">
+      <div>
+        <p className="text-sm font-black uppercase text-red-600">Foods</p>
+        <h1 className="mt-1 text-3xl font-black tracking-normal text-slate-950 md:text-4xl">
+          Add food
+        </h1>
+        <p className="mt-2 text-slate-500">
           Create a new food item for your menu.
         </p>
       </div>

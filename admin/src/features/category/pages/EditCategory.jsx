@@ -24,13 +24,29 @@ const EditCategory = () => {
     navigate("/categories");
   };
 
-  if (!category) return <p>Loading...</p>;
+  if (!category) {
+    return (
+      <div className="rounded-lg border border-slate-200 bg-white p-10 text-center text-slate-500 shadow-sm">
+        Loading category...
+      </div>
+    );
+  }
 
   return (
-    <>
-      <h1>Edit Category</h1>
+    <div className="space-y-6">
+      <div>
+        <p className="text-sm font-black uppercase text-red-600">
+          Categories
+        </p>
+        <h1 className="mt-1 text-3xl font-black tracking-normal text-slate-950 md:text-4xl">
+          Edit category
+        </h1>
+        <p className="mt-2 text-slate-500">
+          Update the category name, status, and image.
+        </p>
+      </div>
       <CategoryForm onSubmit={handleUpdate} initialData={category} />
-    </>
+    </div>
   );
 };
 

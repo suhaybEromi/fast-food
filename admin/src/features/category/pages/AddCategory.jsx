@@ -15,10 +15,15 @@ const AddCategory = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-slate-900">Add Category</h1>
-        <p className="mt-1 text-slate-500">Create a new category</p>
+    <div className="space-y-6">
+      <div>
+        <p className="text-sm font-black uppercase text-red-600">
+          Categories
+        </p>
+        <h1 className="mt-1 text-3xl font-black tracking-normal text-slate-950 md:text-4xl">
+          Add category
+        </h1>
+        <p className="mt-2 text-slate-500">Create a new menu group.</p>
       </div>
 
       <CategoryForm onSubmit={handleCreate} />

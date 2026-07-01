@@ -21,7 +21,7 @@ const EditFood = () => {
 
         setFood(selectedFood);
       } catch (error) {
-        console.log(error);
+        console.error(error);
       } finally {
         setLoading(false);
       }
@@ -32,22 +32,33 @@ const EditFood = () => {
 
   const handleUpdate = async formData => {
     await updateFood(id, formData);
-    navigate("/");
+    navigate("/foods");
   };
 
   if (loading) {
-    return <div className="p-6 text-slate-500">Loading food...</div>;
+    return (
+      <div className="rounded-lg border border-slate-200 bg-white p-10 text-center text-slate-500 shadow-sm">
+        Loading food...
+      </div>
+    );
   }
 
   if (!food) {
-    return <div className="p-6 text-red-500">Food not found.</div>;
+    return (
+      <div className="rounded-lg border border-red-100 bg-red-50 p-10 text-center font-semibold text-red-600">
+        Food not found.
+      </div>
+    );
   }
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-slate-900">Edit Food</h2>
-        <p className="text-sm text-slate-500">Update food information.</p>
+    <div className="space-y-6">
+      <div>
+        <p className="text-sm font-black uppercase text-red-600">Foods</p>
+        <h1 className="mt-1 text-3xl font-black tracking-normal text-slate-950 md:text-4xl">
+          Edit food
+        </h1>
+        <p className="mt-2 text-slate-500">Update food information.</p>
       </div>
 
       <FoodForm

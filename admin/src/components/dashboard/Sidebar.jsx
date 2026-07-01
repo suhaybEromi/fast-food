@@ -1,55 +1,74 @@
-import { LayoutDashboard, Package, Shapes } from "lucide-react";
+import {
+  ClipboardList,
+  LayoutDashboard,
+  Package,
+  Shapes,
+  Store,
+} from "lucide-react";
 import { NavLink } from "react-router-dom";
 
+import { useAuth } from "../../features/auth/AuthContext";
+
 const Sidebar = () => {
+  const { admin } = useAuth();
   const navItem =
-    "flex items-center gap-3 rounded-xl px-4 py-3 text-slate-600 transition-all hover:text-slate-900";
+    "flex items-center gap-3 rounded-lg px-4 py-3 text-slate-300 transition hover:bg-white/10 hover:text-white";
 
   const activeNavItem =
-    "bg-blue-600 text-white shadow-md hover:bg-blue-600 hover:text-white";
+    "bg-red-500 text-white shadow-md shadow-red-950/20 hover:bg-red-500 hover:text-white";
+
+  const navItems = [
+    { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
+    { to: "/orders", label: "Orders", icon: ClipboardList },
+    { to: "/foods", label: "Foods", icon: Package },
+    { to: "/categories", label: "Categories", icon: Shapes },
+  ];
 
   return (
-    <aside className="flex h-screen w-72 flex-col border-r border-slate-200 bg-white">
-      {/* Logo */}
-      <div className="border-b border-slate-200 p-6">
-        <h1 className="text-2xl font-bold text-slate-900">
-          Admin<span className="text-blue-600">Panel</span>
-        </h1>
+    <aside className="sticky top-0 hidden h-screen w-72 flex-col bg-[#17212b] lg:flex">
+      <div className="border-b border-white/10 p-6">
+        <div className="flex items-center gap-3">
+          <div className="grid h-11 w-11 place-items-center rounded-lg bg-red-500 text-white">
+            <Store size={22} />
+          </div>
+          <div>
+            <h1 className="text-xl font-black text-white">FireFast</h1>
+            <p className="text-sm font-medium text-slate-400">Admin console</p>
+          </div>
+        </div>
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 space-y-2 p-4">
-        <NavLink
-          to="/"
-          className={({ isActive }) =>
-            `${navItem} ${isActive ? activeNavItem : ""}`
-          }
-        >
-          <Package size={20} />
-          <span>Products</span>
-        </NavLink>
+        {navItems.map(item => {
+          const Icon = item.icon;
 
-        <NavLink
-          to="/categories"
-          className={({ isActive }) =>
-            `${navItem} ${isActive ? activeNavItem : ""}`
-          }
-        >
-          <Shapes size={20} />
-          <span>Categories</span>
-        </NavLink>
+          return (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.end}
+              className={({ isActive }) =>
+                `${navItem} ${isActive ? activeNavItem : ""}`
+              }
+            >
+              <Icon size={20} />
+              <span>{item.label}</span>
+            </NavLink>
+          );
+        })}
       </nav>
 
-      {/* User */}
-      <div className="border-t border-slate-200 p-4">
-        <div className="flex items-center gap-3 rounded-xl bg-slate-50 p-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 font-semibold text-white">
-            S
+      <div className="border-t border-white/10 p-4">
+        <div className="flex items-center gap-3 rounded-lg bg-white/10 p-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white font-bold text-slate-900">
+            {(admin?.name || "A").charAt(0).toUpperCase()}
           </div>
 
           <div>
-            <p className="font-medium text-slate-800">Suhayb</p>
-            <p className="text-sm text-slate-500">Administrator</p>
+            <p className="font-semibold text-white">{admin?.name || "Admin"}</p>
+            <p className="max-w-[170px] truncate text-sm text-slate-400">
+              {admin?.email || "Administrator"}
+            </p>
           </div>
         </div>
       </div>

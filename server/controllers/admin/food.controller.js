@@ -3,7 +3,7 @@ import Food from "../../models/food.js";
 import Category from "../../models/category.js";
 import slugify from "slugify";
 
-const getFoods = asyncHandler(async (req, res) => {
+const getFoods = asyncHandler(async (_req, res) => {
   const foods = await Food.find()
     .populate("category", "title slug")
     .sort({ createdAt: -1 });

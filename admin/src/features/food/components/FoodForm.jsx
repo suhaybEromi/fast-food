@@ -48,16 +48,16 @@ const FoodForm = ({ initialValues = {}, onSubmit, buttonText }) => {
   }, []);
 
   const inputStyle =
-    "w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100";
+    "w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-red-300 focus:bg-white focus:ring-4 focus:ring-red-50";
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="mx-auto max-w-3xl rounded-2xl bg-white p-6 shadow-sm"
+      className="mx-auto max-w-4xl rounded-lg border border-slate-200 bg-white p-6 shadow-sm"
     >
       <div className="grid gap-5 md:grid-cols-2">
         <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">
+          <label className="mb-2 block text-sm font-bold text-slate-700">
             Food Title
           </label>
           <input
@@ -71,8 +71,8 @@ const FoodForm = ({ initialValues = {}, onSubmit, buttonText }) => {
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">
-            Category ID
+          <label className="mb-2 block text-sm font-bold text-slate-700">
+            Category
           </label>
           <select
             className={inputStyle}
@@ -92,7 +92,7 @@ const FoodForm = ({ initialValues = {}, onSubmit, buttonText }) => {
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">
+          <label className="mb-2 block text-sm font-bold text-slate-700">
             Price
           </label>
           <input
@@ -107,7 +107,7 @@ const FoodForm = ({ initialValues = {}, onSubmit, buttonText }) => {
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">
+          <label className="mb-2 block text-sm font-bold text-slate-700">
             Stock
           </label>
           <input
@@ -122,7 +122,7 @@ const FoodForm = ({ initialValues = {}, onSubmit, buttonText }) => {
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">
+          <label className="mb-2 block text-sm font-bold text-slate-700">
             Status
           </label>
           <select
@@ -137,7 +137,7 @@ const FoodForm = ({ initialValues = {}, onSubmit, buttonText }) => {
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">
+          <label className="mb-2 block text-sm font-bold text-slate-700">
             Image
           </label>
           <input
@@ -150,7 +150,7 @@ const FoodForm = ({ initialValues = {}, onSubmit, buttonText }) => {
       </div>
 
       <div className="mt-5">
-        <label className="mb-1 block text-sm font-medium text-slate-700">
+        <label className="mb-2 block text-sm font-bold text-slate-700">
           Description
         </label>
         <textarea
@@ -166,7 +166,7 @@ const FoodForm = ({ initialValues = {}, onSubmit, buttonText }) => {
         <button
           type="submit"
           disabled={loading}
-          className="rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-400"
+          className="rounded-lg bg-red-600 px-6 py-3 text-sm font-black text-white shadow-sm transition hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-300"
         >
           {loading ? "Saving..." : buttonText}
         </button>
