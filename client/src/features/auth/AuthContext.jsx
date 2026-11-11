@@ -76,6 +76,10 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
+  const updateCustomer = useCallback(nextCustomer => {
+    setCustomer(nextCustomer);
+  }, []);
+
   const value = useMemo(
     () => ({
       checkingSession,
@@ -84,13 +88,15 @@ export const AuthProvider = ({ children }) => {
       logout,
       signin,
       signup,
+      updateCustomer,
     }),
-    [checkingSession, customer, logout, signin, signup],
+    [checkingSession, customer, logout, signin, signup, updateCustomer],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useCustomerAuth = () => {
   const context = useContext(AuthContext);
 

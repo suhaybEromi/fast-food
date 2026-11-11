@@ -5,41 +5,17 @@ import {
   ClipboardList,
   DollarSign,
   Package,
-  Shapes,
+  Timer,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
-import { getCategories } from "../../services/category.service";
-import { getFoods } from "../../services/food.service";
-import { getOrders } from "../../services/order.service";
-
-const demoOrders = [
-  {
-    _id: "demo-order-1",
-    orderNumber: "FF-1028",
-    customer: { name: "Walk-in guest" },
-    status: "preparing",
-    paymentStatus: "paid",
-    total: 18500,
-    createdAt: new Date().toISOString(),
-    items: [{ title: "Classic Stack Burger", quantity: 2 }],
-  },
-  {
-    _id: "demo-order-2",
-    orderNumber: "FF-1029",
-    customer: { name: "Delivery order" },
-    status: "pending",
-    paymentStatus: "unpaid",
-    total: 24000,
-    createdAt: new Date().toISOString(),
-    items: [{ title: "Family Combo", quantity: 1 }],
-  },
-];
+import { getDashboardStats } from "../../services/dashboard.service";
 
 const statusClass = {
   pending: "bg-amber-50 text-amber-700 ring-1 ring-amber-200",
   preparing: "bg-blue-50 text-blue-700 ring-1 ring-blue-200",
   ready: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",
+  out_for_delivery: "bg-amber-50 text-amber-700 ring-1 ring-amber-200",
   delivered: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",
   cancelled: "bg-red-50 text-red-700 ring-1 ring-red-200",
 };
@@ -47,25 +23,21 @@ const statusClass = {
 const formatCurrency = value => `IQD ${Number(value || 0).toLocaleString()}`;
 
 export default function Home() {
-  const [foods, setFoods] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [orders, setOrders] = useState(demoOrders);
+  const [dashboard, setDashboard] = useState(null);
+  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadDashboard = async () => {
       try {
-        const [foodRes, categoryRes, orderRes] = await Promise.all([
-          getFoods(),
-          getCategories(),
-          getOrders(),
-        ]);
+        const response = await getDashboardStats();
+        const stats = response.data || {};
 
-        setFoods(foodRes.data || []);
-        setCategories(categoryRes.data || []);
-        setOrders((orderRes.data || []).length ? orderRes.data : demoOrders);
+        setDashboard(stats);
+        setOrders(Array.isArray(stats.recentOrders) ? stats.recentOrders : []);
       } catch (error) {
         console.error(error);
+        setOrders([]);
       } finally {
         setLoading(false);
       }
@@ -75,44 +47,36 @@ export default function Home() {
   }, []);
 
   const stats = useMemo(() => {
-    const activeOrders = orders.filter(order =>
-      ["pending", "preparing", "ready"].includes(order.status),
-    );
-    const revenue = orders.reduce(
-      (sum, order) =>
-        order.status === "cancelled" ? sum : sum + Number(order.total || 0),
-      0,
-    );
-
     return [
       {
-        label: "Today revenue",
-        value: formatCurrency(revenue),
-        helper: "Confirmed and live orders",
+        label: "Total sales",
+        value: formatCurrency(dashboard?.totalSales || 0),
+        helper: "All non-cancelled order revenue",
         icon: DollarSign,
       },
       {
-        label: "Active orders",
-        value: activeOrders.length,
-        helper: "Pending, cooking, or ready",
+        label: "Total orders",
+        value: dashboard?.totalOrders ?? orders.length,
+        helper: "Orders received",
         icon: ClipboardList,
       },
       {
-        label: "Menu items",
-        value: foods.length,
+        label: "Total products",
+        value: dashboard?.totalProducts || 0,
         helper: "Foods in the catalog",
         icon: Package,
       },
       {
-        label: "Categories",
-        value: categories.length,
-        helper: "Menu groups",
-        icon: Shapes,
+        label: "Pending orders",
+        value: dashboard?.pendingOrders || 0,
+        helper: "Waiting for kitchen action",
+        icon: Timer,
       },
     ];
-  }, [categories.length, foods.length, orders]);
+  }, [dashboard, orders.length]);
 
-  const topFoods = foods.slice(0, 4);
+  const topFoods = dashboard?.bestSellingProducts || [];
+  const lowStockProducts = dashboard?.lowStockProducts || [];
 
   return (
     <div className="space-y-6">
@@ -203,34 +167,45 @@ export default function Home() {
                 </tr>
               </thead>
               <tbody>
-                {orders.slice(0, 6).map(order => (
-                  <tr
-                    key={order._id}
-                    className="border-t border-slate-100 text-sm hover:bg-slate-50"
-                  >
-                    <td className="px-5 py-4 font-black text-slate-950">
-                      {order.orderNumber}
-                    </td>
-                    <td className="px-5 py-4 text-slate-600">
-                      {order.customer?.name || "Guest"}
-                    </td>
-                    <td className="px-5 py-4 text-slate-600">
-                      {order.items?.length || 0} items
-                    </td>
-                    <td className="px-5 py-4">
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-black capitalize ${
-                          statusClass[order.status] || statusClass.pending
-                        }`}
-                      >
-                        {order.status}
-                      </span>
-                    </td>
-                    <td className="px-5 py-4 text-right font-black text-slate-950">
-                      {formatCurrency(order.total)}
+                {orders.length === 0 ? (
+                  <tr className="border-t border-slate-100">
+                    <td
+                      colSpan="5"
+                      className="px-5 py-10 text-center text-sm font-semibold text-slate-500"
+                    >
+                      No recent orders yet.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  orders.slice(0, 6).map(order => (
+                    <tr
+                      key={order._id}
+                      className="border-t border-slate-100 text-sm hover:bg-slate-50"
+                    >
+                      <td className="px-5 py-4 font-black text-slate-950">
+                        {order.orderNumber}
+                      </td>
+                      <td className="px-5 py-4 text-slate-600">
+                        {order.customer?.name || "Guest"}
+                      </td>
+                      <td className="px-5 py-4 text-slate-600">
+                        {order.items?.length || 0} items
+                      </td>
+                      <td className="px-5 py-4">
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-black capitalize ${
+                            statusClass[order.status] || statusClass.pending
+                          }`}
+                        >
+                          {order.status?.replaceAll("_", " ") || "pending"}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4 text-right font-black text-slate-950">
+                        {formatCurrency(order.total)}
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -240,31 +215,58 @@ export default function Home() {
           <div className="mb-5 flex items-center justify-between">
             <div>
               <h2 className="text-lg font-black text-slate-950">
-                Menu snapshot
+                Best-selling products
               </h2>
-              <p className="text-sm text-slate-500">Quick stock visibility.</p>
+              <p className="text-sm text-slate-500">
+                Ranked by delivered and live order quantity.
+              </p>
             </div>
             <Activity className="text-red-500" size={22} />
           </div>
 
           <div className="space-y-3">
-            {(topFoods.length ? topFoods : demoOrders[0].items).map(item => (
-              <div
-                key={item._id || item.title}
-                className="flex items-center justify-between gap-3 rounded-lg border border-slate-100 bg-slate-50 p-3"
-              >
-                <div>
-                  <p className="font-bold text-slate-900">{item.title}</p>
-                  <p className="text-sm text-slate-500">
-                    {item.category?.title || "Featured"}
-                  </p>
-                </div>
-                <span className="rounded-lg bg-white px-3 py-1 text-sm font-black text-slate-700">
-                  {item.stock ?? item.quantity ?? 0}
-                </span>
+            {topFoods.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-5 text-center text-sm font-semibold text-slate-500">
+                No sales data yet.
               </div>
-            ))}
+            ) : (
+              topFoods.map(item => (
+                <div
+                  key={item._id || item.title}
+                  className="flex items-center justify-between gap-3 rounded-lg border border-slate-100 bg-slate-50 p-3"
+                >
+                  <div>
+                    <p className="font-bold text-slate-900">{item.title}</p>
+                    <p className="text-sm text-slate-500">
+                      {formatCurrency(item.sales || item.price || 0)}
+                    </p>
+                  </div>
+                  <span className="rounded-lg bg-white px-3 py-1 text-sm font-black text-slate-700">
+                    {item.quantity ?? 0} sold
+                  </span>
+                </div>
+              ))
+            )}
           </div>
+
+          {lowStockProducts.length > 0 && (
+            <div className="mt-5 border-t border-slate-100 pt-5">
+              <h3 className="text-sm font-black uppercase text-red-600">
+                Low stock alert
+              </h3>
+              <div className="mt-3 grid gap-2">
+                {lowStockProducts.map(item => (
+                  <div
+                    key={item._id}
+                    className="flex items-center justify-between rounded-lg bg-red-50 px-3 py-2 text-sm"
+                  >
+                    <span className="font-bold text-red-900">{item.title}</span>
+                    <b className="text-red-700">{item.stock} left</b>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </section>
       </div>
     </div>

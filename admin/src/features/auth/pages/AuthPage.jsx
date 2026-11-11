@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import {
   ArrowRight,
   LockKeyhole,
@@ -67,7 +67,10 @@ export default function AuthPage({ mode = "login" }) {
   }
 
   const fillAdmin = () => {
-    setForm({ email: "suhaibmuhammad083@gmail.com", password: "suhayb" });
+    setForm({
+      email: "suhaibmuhammad083@gmail.com",
+      password: "suhayb",
+    });
   };
 
   const handleChange = event => {
@@ -85,7 +88,10 @@ export default function AuthPage({ mode = "login" }) {
     try {
       const payload = isSignup
         ? { name: form.name, email: form.email, password: form.password }
-        : { email: form.email, password: form.password };
+        : {
+            email: form.email,
+            password: form.password,
+          };
       const response = isSignup
         ? await signupAdmin(payload)
         : await loginAdmin(payload);

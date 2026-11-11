@@ -1,7 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 import ProductVisual from "./ProductVisual";
 import { formatCurrency } from "../utils/foodHelpers";
-import { createCustomerOrder } from "../../services/api";
+import {
+  createCustomerOrder,
+  getDeliveryZones,
+  validateCoupon,
+} from "../../services/api";
+
+const hasLocation = location =>
+  Number.isFinite(Number(location?.lat)) &&
+  Number.isFinite(Number(location?.lng));
+
+const getMapUrl = location =>
+  `https://www.google.com/maps?q=${Number(location.lat)},${Number(location.lng)}`;
 
 export default function CartDrawer({
   cart,
@@ -14,43 +25,78 @@ export default function CartDrawer({
   openAuth,
   closeCart,
 }) {
+  const defaultAddress = customer?.addresses?.find(item => item.isDefault);
   const [fulfillment, setFulfillment] = useState("delivery");
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [orderMessage, setOrderMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedAddressId, setSelectedAddressId] = useState(
+    defaultAddress?._id || "",
+  );
+  const [deliveryZones, setDeliveryZones] = useState([]);
+  const [selectedZoneId, setSelectedZoneId] = useState("");
+  const [deliveryLocation, setDeliveryLocation] = useState(
+    defaultAddress?.location || null,
+  );
+  const [couponInput, setCouponInput] = useState("");
+  const [coupon, setCoupon] = useState(null);
+  const [redeemPoints, setRedeemPoints] = useState(0);
 
   const [checkout, setCheckout] = useState({
-    name: "",
-    phone: "",
-    address: "",
+    name: customer?.name || "",
+    phone: customer?.phone || "",
+    address: defaultAddress?.address || customer?.address || "",
     notes: "",
   });
-
-  useEffect(() => {
-    if (!customer) {
-      return;
-    }
-
-    setCheckout(current => ({
-      ...current,
-      name: current.name || customer.name || "",
-      phone: current.phone || customer.phone || "",
-      address: current.address || customer.address || "",
-    }));
-  }, [customer]);
 
   const subtotal = useMemo(
     () => cart.reduce((sum, item) => sum + item.price * item.quantity, 0),
     [cart],
   );
 
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      getDeliveryZones()
+        .then(response => {
+          const zones = Array.isArray(response.data) ? response.data : [];
+          setDeliveryZones(zones);
+
+          if (zones.length > 0 && !selectedZoneId) {
+            setSelectedZoneId(zones[0]._id);
+          }
+        })
+        .catch(() => setDeliveryZones([]));
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [selectedZoneId]);
+
+  const selectedZone = deliveryZones.find(zone => zone._id === selectedZoneId);
   const deliveryFee =
-    fulfillment === "pickup" || subtotal === 0 || subtotal >= 25000 ? 0 : 2000;
+    fulfillment === "pickup" || subtotal === 0
+      ? 0
+      : (selectedZone?.deliveryFee ?? (subtotal >= 25000 ? 0 : 2000));
 
   const serviceFee = subtotal > 0 ? Math.round(subtotal * 0.03) : 0;
-  const total = subtotal + deliveryFee + serviceFee;
+  const discountAmount = coupon
+    ? Math.min(subtotal, Math.round((subtotal * coupon.percentage) / 100))
+    : 0;
+  const maxRedeemablePoints = Math.min(
+    customer?.loyaltyPoints || 0,
+    Math.floor(subtotal / 50),
+  );
+  const cleanRedeemPoints = Math.min(
+    Math.max(Number(redeemPoints) || 0, 0),
+    maxRedeemablePoints,
+  );
+  const loyaltyDiscount = cleanRedeemPoints * 50;
+  const total = Math.max(
+    0,
+    subtotal + deliveryFee + serviceFee - discountAmount - loyaltyDiscount,
+  );
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
   const drawerSide = languageMeta.dir === "rtl" ? "left-0" : "right-0";
+  const savedAddresses = customer?.addresses || [];
 
   const updateQuantity = (id, nextQuantity) => {
     setCart(current =>
@@ -78,6 +124,61 @@ export default function CartDrawer({
     }));
   };
 
+  const handleAddressSelect = event => {
+    const addressId = event.target.value;
+    const address = savedAddresses.find(item => item._id === addressId);
+
+    setSelectedAddressId(addressId);
+
+    if (address) {
+      setCheckout(current => ({
+        ...current,
+        name: address.recipientName || current.name,
+        phone: address.phone || current.phone,
+        address: address.address || current.address,
+      }));
+      setDeliveryLocation(address.location || null);
+    }
+  };
+
+  const useCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setOrderMessage("Location is not available in this browser.");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        setDeliveryLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+          label: "Current location",
+        });
+        setOrderMessage("Location added to delivery details.");
+      },
+      () => setOrderMessage("Could not read your location."),
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
+  };
+
+  const applyCoupon = async () => {
+    const code = couponInput.trim();
+
+    if (!code) {
+      setCoupon(null);
+      return;
+    }
+
+    try {
+      const response = await validateCoupon(code);
+      setCoupon(response.data);
+      setOrderMessage(`${response.data.code} applied.`);
+    } catch (error) {
+      setCoupon(null);
+      setOrderMessage(error.message || "Coupon is invalid.");
+    }
+  };
+
   const handleSubmitOrder = async event => {
     event.preventDefault();
 
@@ -103,15 +204,14 @@ export default function CartDrawer({
       },
       items: cart.map(item => ({
         food: item.food,
-        title: item.title,
-        image: item.image,
-        price: item.price,
         quantity: item.quantity,
       })),
       orderType: fulfillment,
       paymentMethod,
-      deliveryFee,
-      serviceFee,
+      deliveryZone: selectedZoneId || undefined,
+      deliveryLocation,
+      redeemPoints: cleanRedeemPoints,
+      couponCode: coupon?.code || couponInput,
       notes: checkout.notes,
     };
 
@@ -128,8 +228,11 @@ export default function CartDrawer({
         address: customer.address || "",
         notes: "",
       });
-    } catch {
-      setOrderMessage("We could not place the order. Please try again.");
+      setCoupon(null);
+      setCouponInput("");
+      setRedeemPoints(0);
+    } catch (error) {
+      setOrderMessage(error.message || "We could not place the order.");
     } finally {
       setIsSubmitting(false);
     }
@@ -292,6 +395,16 @@ export default function CartDrawer({
               value={serviceFee}
               language={language}
             />
+            <PriceRow
+              label="Discount"
+              value={-discountAmount}
+              language={language}
+            />
+            <PriceRow
+              label="Loyalty"
+              value={-loyaltyDiscount}
+              language={language}
+            />
 
             <div className="flex items-center justify-between gap-3 border-t border-[#eadfce] pt-3">
               <span className="font-black text-[#171511]">
@@ -376,14 +489,90 @@ export default function CartDrawer({
               </div>
 
               {fulfillment === "delivery" && (
-                <Input
-                  label={text.address}
-                  name="address"
-                  value={checkout.address}
-                  onChange={handleCheckoutChange}
-                  placeholder={text.addressPlaceholder}
-                  required
-                />
+                <div className="grid gap-3">
+                  {savedAddresses.length > 0 && (
+                    <label className="grid gap-2 text-sm font-black text-[#726b61]">
+                      Delivery address
+                      <select
+                        value={selectedAddressId}
+                        onChange={handleAddressSelect}
+                        className="rounded-2xl border border-[#eadfce] bg-white px-4 py-3 font-medium text-[#171511] outline-none focus:border-[#f5a400] focus:ring-4 focus:ring-[#f5a400]/15"
+                      >
+                        <option value="">Custom address</option>
+                        {savedAddresses.map(address => (
+                          <option key={address._id} value={address._id}>
+                            {address.label || "Address"} - {address.address}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  )}
+
+                  <Input
+                    label={text.address}
+                    name="address"
+                    value={checkout.address}
+                    onChange={handleCheckoutChange}
+                    placeholder={text.addressPlaceholder}
+                    required
+                  />
+
+                  {deliveryZones.length > 0 && (
+                    <label className="grid gap-2 text-sm font-black text-[#726b61]">
+                      Delivery zone
+                      <select
+                        value={selectedZoneId}
+                        onChange={event =>
+                          setSelectedZoneId(event.target.value)
+                        }
+                        className="rounded-2xl border border-[#eadfce] bg-white px-4 py-3 font-medium text-[#171511] outline-none focus:border-[#f5a400] focus:ring-4 focus:ring-[#f5a400]/15"
+                      >
+                        {deliveryZones.map(zone => (
+                          <option key={zone._id} value={zone._id}>
+                            {zone.name} -{" "}
+                            {formatCurrency(zone.deliveryFee, language)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  )}
+
+                  <div className="rounded-2xl border border-[#eadfce] bg-[#fffaf2] p-3">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <p className="text-sm font-black text-[#171511]">
+                          Delivery location
+                        </p>
+                        <p className="text-xs font-bold text-[#726b61]">
+                          {hasLocation(deliveryLocation)
+                            ? "Map location selected"
+                            : "No map location selected"}
+                        </p>
+                      </div>
+                      <div className="flex flex-col gap-2 sm:flex-row">
+                        {hasLocation(deliveryLocation) && (
+                          <a
+                            href={getMapUrl(deliveryLocation)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center justify-center rounded-full border border-[#eadfce] bg-white px-4 py-2 text-xs font-black text-[#171511] transition hover:border-[#f5a400]"
+                          >
+                            View map
+                          </a>
+                        )}
+                        <button
+                          type="button"
+                          onClick={useCurrentLocation}
+                          className="rounded-full bg-[#171511] px-4 py-2 text-xs font-black text-white transition hover:bg-[#f5a400] hover:text-[#171511]"
+                        >
+                          {hasLocation(deliveryLocation)
+                            ? "Update location"
+                            : "Use current location"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               )}
 
               <label className="grid gap-2 text-sm font-black text-[#726b61]">
@@ -413,6 +602,40 @@ export default function CartDrawer({
                   </button>
                 ))}
               </div>
+
+              <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
+                <Input
+                  label="Coupon"
+                  name="coupon"
+                  value={couponInput}
+                  onChange={event => setCouponInput(event.target.value)}
+                  placeholder="SAVE10"
+                />
+                <button
+                  type="button"
+                  onClick={applyCoupon}
+                  className="self-end rounded-full border border-[#eadfce] bg-white px-5 py-3 font-black text-[#171511] transition hover:border-[#f5a400]"
+                >
+                  Apply
+                </button>
+              </div>
+
+              <label className="grid gap-2 text-sm font-black text-[#726b61]">
+                Loyalty points
+                <div className="grid gap-2 rounded-2xl border border-[#eadfce] bg-[#fffaf2] p-3 sm:grid-cols-[1fr_auto]">
+                  <input
+                    type="number"
+                    min="0"
+                    max={maxRedeemablePoints}
+                    value={redeemPoints}
+                    onChange={event => setRedeemPoints(event.target.value)}
+                    className="rounded-2xl border border-[#eadfce] bg-white px-4 py-3 font-medium text-[#171511] outline-none focus:border-[#f5a400] focus:ring-4 focus:ring-[#f5a400]/15"
+                  />
+                  <span className="self-center text-xs font-black text-[#726b61]">
+                    {customer.loyaltyPoints || 0} available
+                  </span>
+                </div>
+              </label>
 
               <button
                 className="rounded-full bg-[#f5a400] px-5 py-3 font-black text-[#171511] transition hover:-translate-y-0.5 disabled:bg-[#c9bba6] disabled:text-white"

@@ -1,31 +1,44 @@
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 
 import asyncHandler from "../../middlewares/asyncHandler.js";
 import Admin from "../../models/admin.js";
+import {
+  AUTH_COOKIE_MAX_AGE,
+  COOKIE_NAMES,
+  getPrivateCookieOptions,
+} from "../../utils/cookies.js";
+import { normalizeAdminRole } from "../../middlewares/adminRoles.js";
+import { getJwtSecret } from "../../utils/secrets.js";
 
-const ACCESS_COOKIE = "adminAccessToken";
-const REFRESH_COOKIE = "adminRefreshToken";
+const ACCESS_COOKIE = COOKIE_NAMES.adminAccess;
+const REFRESH_COOKIE = COOKIE_NAMES.adminRefresh;
+const ACCESS_MAX_AGE = AUTH_COOKIE_MAX_AGE.access;
+const REFRESH_MAX_AGE = AUTH_COOKIE_MAX_AGE.refresh;
+
+const hashToken = token =>
+  crypto.createHash("sha256").update(token).digest("hex");
 
 const getAccessSecret = () =>
-  process.env.JWT_ACCESS_SECRET ||
-  process.env.JWT_SECRET ||
-  "fast-food-admin-access-secret";
+  getJwtSecret(["JWT_ACCESS_SECRET", "JWT_SECRET"], "Admin access JWT secret");
 
 const getRefreshSecret = () =>
-  process.env.JWT_REFRESH_SECRET ||
-  process.env.JWT_SECRET ||
-  "fast-food-admin-refresh-secret";
+  getJwtSecret(
+    ["JWT_REFRESH_SECRET", "JWT_SECRET"],
+    "Admin refresh JWT secret",
+  );
 
-const getCookieOptions = maxAge => ({
-  httpOnly: true,
-  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-  secure: process.env.NODE_ENV === "production",
-  maxAge,
-});
+const getCookieOptions = maxAge => getPrivateCookieOptions(maxAge);
+
+const normalizeEmail = email => email.trim().toLowerCase();
 
 const signAccessToken = admin =>
   jwt.sign(
-    { id: admin._id, role: admin.role, tokenType: "access" },
+    {
+      id: admin._id,
+      role: normalizeAdminRole(admin.role),
+      tokenType: "access",
+    },
     getAccessSecret(),
     {
       expiresIn: process.env.JWT_ACCESS_EXPIRES_IN || "15m",
@@ -34,26 +47,26 @@ const signAccessToken = admin =>
 
 const signRefreshToken = admin =>
   jwt.sign(
-    { id: admin._id, role: admin.role, tokenType: "refresh" },
+    {
+      id: admin._id,
+      role: normalizeAdminRole(admin.role),
+      tokenType: "refresh",
+    },
     getRefreshSecret(),
     {
       expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || "7d",
     },
   );
 
-const normalizeEmail = email => email.trim().toLowerCase();
+const setAuthCookies = async (res, admin) => {
+  const accessToken = signAccessToken(admin);
+  const refreshToken = signRefreshToken(admin);
 
-const setAuthCookies = (res, admin) => {
-  res.cookie(
-    ACCESS_COOKIE,
-    signAccessToken(admin),
-    getCookieOptions(15 * 60 * 1000),
-  );
-  res.cookie(
-    REFRESH_COOKIE,
-    signRefreshToken(admin),
-    getCookieOptions(7 * 24 * 60 * 60 * 1000),
-  );
+  admin.refreshTokenHash = hashToken(refreshToken);
+  await admin.save({ validateBeforeSave: false });
+
+  res.cookie(ACCESS_COOKIE, accessToken, getCookieOptions(ACCESS_MAX_AGE));
+  res.cookie(REFRESH_COOKIE, refreshToken, getCookieOptions(REFRESH_MAX_AGE));
 };
 
 const clearAuthCookies = res => {
@@ -61,8 +74,13 @@ const clearAuthCookies = res => {
   res.clearCookie(REFRESH_COOKIE, getCookieOptions(0));
 };
 
-const sendAdmin = (res, status, admin, message) => {
-  setAuthCookies(res, admin);
+const sendAdmin = async (res, status, admin, message) => {
+  admin.role = normalizeAdminRole(admin.role);
+
+  await setAuthCookies(res, admin);
+
+  admin.password = undefined;
+  admin.refreshTokenHash = undefined;
 
   res.status(status).json({
     success: true,
@@ -70,30 +88,6 @@ const sendAdmin = (res, status, admin, message) => {
     data: admin,
   });
 };
-
-// const signup = asyncHandler(async (req, res) => {
-//   const { name, email, password } = req.body;
-
-//   if (!name || !email || !password) {
-//     const error = new Error("Name, email, and password are required");
-//     error.status = 400;
-//     throw error;
-//   }
-
-//   const normalizedEmail = normalizeEmail(email);
-
-//   const existingAdmin = await Admin.findOne({ email: normalizedEmail });
-
-//   if (existingAdmin) {
-//     const error = new Error("Admin email already exists");
-//     error.status = 400;
-//     throw error;
-//   }
-
-//   const admin = await Admin.create({ name, email: normalizedEmail, password });
-
-//   sendAdmin(res, 201, admin, "Admin account created");
-// });
 
 const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
@@ -114,7 +108,7 @@ const login = asyncHandler(async (req, res) => {
     throw error;
   }
 
-  sendAdmin(res, 200, admin, "Logged in successfully");
+  await sendAdmin(res, 200, admin, "Logged in successfully");
 });
 
 const refresh = asyncHandler(async (req, res) => {
@@ -138,7 +132,12 @@ const refresh = asyncHandler(async (req, res) => {
     throw error;
   }
 
-  if (decoded.tokenType !== "refresh" || decoded.role !== "admin") {
+  const role = normalizeAdminRole(decoded.role);
+
+  if (
+    decoded.tokenType !== "refresh" ||
+    !["super_admin", "manager", "staff"].includes(role)
+  ) {
     clearAuthCookies(res);
 
     const error = new Error("Refresh token is invalid");
@@ -146,17 +145,21 @@ const refresh = asyncHandler(async (req, res) => {
     throw error;
   }
 
-  const admin = await Admin.findById(decoded.id);
+  const admin = await Admin.findById(decoded.id).select("+refreshTokenHash");
 
-  if (!admin) {
+  if (!admin || admin.refreshTokenHash !== hashToken(token)) {
     clearAuthCookies(res);
 
-    const error = new Error("Admin account was not found");
+    const error = new Error("Refresh token is invalid");
     error.status = 401;
     throw error;
   }
 
-  setAuthCookies(res, admin);
+  admin.role = normalizeAdminRole(admin.role);
+
+  await setAuthCookies(res, admin);
+
+  admin.refreshTokenHash = undefined;
 
   res.status(200).json({
     success: true,
@@ -172,7 +175,21 @@ const me = asyncHandler(async (req, res) => {
   });
 });
 
-const logout = asyncHandler(async (_req, res) => {
+const logout = asyncHandler(async (req, res) => {
+  const token = req.cookies?.[REFRESH_COOKIE];
+
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, getRefreshSecret());
+
+      await Admin.findByIdAndUpdate(decoded.id, {
+        refreshTokenHash: "",
+      });
+    } catch {
+      // ignore invalid token
+    }
+  }
+
   clearAuthCookies(res);
 
   res.status(200).json({
@@ -181,5 +198,4 @@ const logout = asyncHandler(async (_req, res) => {
   });
 });
 
-// signup
 export default { login, refresh, me, logout };

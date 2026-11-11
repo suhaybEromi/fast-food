@@ -2,13 +2,18 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import {
   Bell,
-  CalendarClock,
+  Bike,
   ClipboardList,
+  FileClock,
+  Images,
   LayoutDashboard,
   LogOut,
+  MapPinned,
   Package,
-  Search,
+  ShieldCheck,
+  Tags,
   Shapes,
+  BarChart3,
 } from "lucide-react";
 import Sidebar from "./Sidebar";
 import { useAuth } from "../../features/auth/AuthContext";
@@ -19,9 +24,17 @@ import {
 
 const mobileNav = [
   { to: "/", label: "Home", icon: LayoutDashboard, end: true },
+  { to: "/analytics", label: "Analytics", icon: BarChart3 },
   { to: "/orders", label: "Orders", icon: ClipboardList },
   { to: "/foods", label: "Foods", icon: Package },
   { to: "/categories", label: "Categories", icon: Shapes },
+  { to: "/coupons", label: "Coupons", icon: Tags },
+  { to: "/banners", label: "Banners", icon: Images },
+  { to: "/delivery-zones", label: "Zones", icon: MapPinned },
+  { to: "/drivers", label: "Drivers", icon: Bike },
+  { to: "/audit-logs", label: "Audit", icon: FileClock },
+  { to: "/admins", label: "Admins", icon: ShieldCheck },
+  { to: "/security", label: "Security", icon: ShieldCheck },
 ];
 
 const formatNotificationTime = value =>
@@ -50,11 +63,14 @@ const AdminLayout = () => {
   }, []);
 
   useEffect(() => {
-    fetchNotifications();
+    const timeoutId = window.setTimeout(fetchNotifications, 0);
 
     const intervalId = window.setInterval(fetchNotifications, 15000);
 
-    return () => window.clearInterval(intervalId);
+    return () => {
+      window.clearTimeout(timeoutId);
+      window.clearInterval(intervalId);
+    };
   }, [fetchNotifications]);
 
   const markNotificationsRead = useCallback(async () => {
@@ -69,37 +85,34 @@ const AdminLayout = () => {
   }, []);
 
   return (
-    <div className="flex min-h-screen bg-[#f5f7f6] text-slate-950">
+    <div className="flex min-h-screen bg-slate-950 text-slate-950">
       <Sidebar />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-10 border-b border-slate-200/80 bg-white/90 px-4 py-3 backdrop-blur md:px-8">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <label className="flex w-full max-w-xl items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500">
-              <Search size={18} />
-              <input
-                className="w-full bg-transparent text-slate-800 outline-none placeholder:text-slate-400"
-                placeholder="Search orders, menu items, or categories"
-              />
-            </label>
+        <header className="sticky top-0 z-20 border-b border-slate-800 bg-slate-950/95 px-3 py-3 shadow-lg shadow-black/20 backdrop-blur md:px-5 xl:px-6">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-red-500">
+                FireFast
+              </p>
+              <p className="truncate text-sm font-semibold text-slate-400">
+                Operations dashboard
+              </p>
+            </div>
 
-            <div className="flex items-center gap-2">
-              <div className="hidden items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 md:flex">
-                <span className="grid h-7 w-7 place-items-center rounded-lg bg-slate-950 text-xs font-black text-white">
+            <div className="flex min-w-0 items-center justify-end gap-2">
+              <div className="hidden min-w-0 items-center gap-2 rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-sm font-semibold text-slate-200 sm:flex">
+                <span className="grid h-7 w-7 place-items-center rounded-lg bg-white text-xs font-black text-slate-950">
                   {(admin?.name || "A").charAt(0).toUpperCase()}
                 </span>
-                {admin?.name || "Admin"}
-              </div>
-              <div className="hidden items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 sm:flex">
-                <CalendarClock size={17} />
-                Live shift
+                <span className="max-w-36 truncate">{admin?.name || "Admin"}</span>
               </div>
               <div className="relative">
                 <button
                   type="button"
                   aria-label="Notifications"
                   onClick={() => setIsNotificationsOpen(current => !current)}
-                  className="relative grid h-10 w-10 place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:border-red-200 hover:text-red-600"
+                  className="relative grid h-10 w-10 place-items-center rounded-lg border border-slate-800 bg-slate-900 text-slate-300 transition hover:border-red-500 hover:text-red-400"
                 >
                   <Bell size={18} />
                   {unreadNotifications > 0 && (
@@ -184,14 +197,14 @@ const AdminLayout = () => {
                 type="button"
                 aria-label="Logout"
                 onClick={logout}
-                className="grid h-10 w-10 place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:border-red-200 hover:text-red-600"
+                className="grid h-10 w-10 place-items-center rounded-lg border border-slate-800 bg-slate-900 text-slate-300 transition hover:border-red-500 hover:text-red-400"
               >
                 <LogOut size={18} />
               </button>
             </div>
           </div>
 
-          <nav className="grid grid-cols-4 gap-2 lg:hidden">
+          <nav className="mt-3 flex gap-2 overflow-x-auto pb-1 lg:hidden">
             {mobileNav.map(item => {
               const Icon = item.icon;
 
@@ -201,10 +214,10 @@ const AdminLayout = () => {
                   to={item.to}
                   end={item.end}
                   className={({ isActive }) =>
-                    `flex flex-col items-center gap-1 rounded-lg px-2 py-2 text-xs font-bold transition ${
+                    `flex min-w-[4.5rem] flex-col items-center gap-1 rounded-lg px-2 py-2 text-xs font-bold transition ${
                       isActive
                         ? "bg-red-600 text-white"
-                        : "bg-slate-50 text-slate-500"
+                        : "bg-slate-900 text-slate-400"
                     }`
                   }
                 >
@@ -216,7 +229,7 @@ const AdminLayout = () => {
           </nav>
         </header>
 
-        <main className="min-w-0 flex-1 p-4 md:p-8">
+        <main className="min-w-0 flex-1 rounded-tl-3xl bg-slate-100 p-3 sm:p-5 xl:p-6">
           <Outlet />
         </main>
       </div>

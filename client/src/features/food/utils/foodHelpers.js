@@ -1,9 +1,8 @@
 import {
   languages,
-  translations,
   categoryLabels,
-  fallbackText,
 } from "../data/food.data";
+import { IMAGE_URL } from "../../services/api";
 
 export function getLanguageMeta(language) {
   return languages.find(item => item.code === language) || languages[0];
@@ -44,28 +43,27 @@ export function normalizeFood(food, index, language) {
     food.image && food.image.startsWith("http")
       ? food.image
       : food.image
-        ? `${import.meta.env.VITE_API_URL_IMG}${food.image}`
+        ? `${IMAGE_URL}${food.image}`
         : "";
 
-  const id = food._id || food.id || food.slug || `${food.title}-${index}`;
-  const localText = fallbackText[language]?.[id];
+  const id = food._id;
 
   return {
     id,
-    title: localText?.title || food.title,
-    description:
-      localText?.description ||
-      food.description ||
-      translations[language].appTagline,
+    title: food.title,
+    description: food.description || "",
     category,
     categoryLabel: getCategoryLabel(category, language),
     price: Number(food.price) || 0,
     stock: Number(food.stock) || 0,
+    soldCount: Number(food.soldCount) || 0,
     status: food.status || "active",
     image,
-    rating: Number(food.rating) || 4.6,
-    prepTime: food.prepTime || "12 min",
-    tag: localText?.tag || food.tag || translations[language].appTagline,
+    rating: Number(food.ratingAverage || food.rating) || 0,
+    ratingAverage: Number(food.ratingAverage || food.rating) || 0,
+    ratingCount: Number(food.ratingCount) || 0,
+    prepTime: food.prepTime || "",
+    tag: food.tag || "",
     visual: food.visual || getVisualForCategory(category, index),
   };
 }

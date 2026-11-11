@@ -1,43 +1,20 @@
 import axios from "axios";
 
-export const API_URL = import.meta.env.VITE_API_URL;
-export const IMAGE_URL = import.meta.env.VITE_API_URL_IMG;
+import { retryAfterRefresh } from "./authRetry";
+import { addCsrfHeader } from "./csrf";
+import { API_URL, IMAGE_URL } from "./env";
 
 const api = axios.create({
   baseURL: API_URL,
   withCredentials: true,
 });
 
-let refreshRequest = null;
+api.interceptors.request.use(addCsrfHeader);
 
 api.interceptors.response.use(
   response => response,
-  async error => {
-    const originalRequest = error.config;
-    const isAuthCall = originalRequest?.url?.startsWith("/auth/");
-
-    if (
-      error.response?.status === 401 &&
-      originalRequest &&
-      !originalRequest._retry &&
-      !isAuthCall
-    ) {
-      originalRequest._retry = true;
-
-      try {
-        refreshRequest = refreshRequest || api.post("/auth/refresh");
-        await refreshRequest;
-        refreshRequest = null;
-
-        return api(originalRequest);
-      } catch (refreshError) {
-        refreshRequest = null;
-        return Promise.reject(refreshError);
-      }
-    }
-
-    return Promise.reject(error);
-  },
+  error => retryAfterRefresh(api, error),
 );
 
+export { API_URL, IMAGE_URL };
 export default api;

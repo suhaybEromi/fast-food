@@ -46,7 +46,6 @@ export const translations = {
     product: "Product",
     quantity: "Qty",
     recentOrders: "Recent orders",
-    sampleMenu: "Sample menu shown until API foods are available.",
     search: "Search",
     searchPlaceholder: "Search burger, fries, wrap...",
     service: "Service",
@@ -56,8 +55,6 @@ export const translations = {
     totalPrice: "Total price",
     wallet: "Wallet",
     orderQueued: orderNumber => `Order ${orderNumber} is in the kitchen queue.`,
-    orderSaved: orderNumber =>
-      `Order ${orderNumber} was saved locally until the API is online.`,
   },
 
   ar: {
@@ -101,7 +98,6 @@ export const translations = {
     product: "المنتج",
     quantity: "الكمية",
     recentOrders: "آخر الطلبات",
-    sampleMenu: "يتم عرض قائمة تجريبية إلى أن تتوفر منتجات API.",
     search: "بحث",
     searchPlaceholder: "ابحث عن برغر، بطاطا، راب...",
     service: "الخدمة",
@@ -111,8 +107,6 @@ export const translations = {
     totalPrice: "السعر الكلي",
     wallet: "محفظة",
     orderQueued: orderNumber => `الطلب ${orderNumber} دخل قائمة المطبخ.`,
-    orderSaved: orderNumber =>
-      `تم حفظ الطلب ${orderNumber} محلياً إلى أن يعمل الخادم.`,
   },
 
   ku: {
@@ -157,7 +151,6 @@ export const translations = {
     product: "بەرهەم",
     quantity: "دانە",
     recentOrders: "دوایین داواکارییەکان",
-    sampleMenu: "تا بەرهەمەکانی API ئامادە دەبن، مێنیوی نموونە پیشان دەدرێت.",
     search: "گەڕان",
     searchPlaceholder: "بگەڕێ بۆ بەرگەر، پەتاتە، ڕاپ...",
     service: "خزمەتگوزاری",
@@ -167,11 +160,8 @@ export const translations = {
     totalPrice: "نرخی گشتی",
     wallet: "جزدان",
     orderQueued: orderNumber => `داواکاری ${orderNumber} چووە ڕیزی چێشتخانە.`,
-    orderSaved: orderNumber =>
-      `داواکاری ${orderNumber} بە شێوەی ناوخۆیی پاشەکەوت کرا تا API کار بکات.`,
   },
 };
-
 export const categoryLabels = {
   en: {
     Burgers: "Burgers",
@@ -202,205 +192,4 @@ export const categoryLabels = {
     Combos: "کۆمبۆ",
     Featured: "تایبەت",
   },
-};
-
-export const fallbackText = {
-  en: {
-    "classic-stack": {
-      title: "Classic Stack Burger",
-      description:
-        "Double beef, cheddar, crisp lettuce, tomato, and house sauce.",
-      tag: "Best seller",
-    },
-    "smoky-chicken": {
-      title: "Smoky Chicken Wrap",
-      description:
-        "Grilled chicken, pickles, garlic sauce, and charred flatbread.",
-      tag: "Fresh",
-    },
-    "loaded-fries": {
-      title: "Loaded Fries Box",
-      description:
-        "Golden fries with cheese, jalapenos, ranch, and crispy onions.",
-      tag: "Shareable",
-    },
-    "hot-wings": {
-      title: "Fire Wings",
-      description: "Six spicy wings tossed in pepper glaze with cool dip.",
-      tag: "Spicy",
-    },
-    "garden-bowl": {
-      title: "Garden Crunch Bowl",
-      description:
-        "Crisp greens, grilled halloumi, tomatoes, herbs, and lemon sauce.",
-      tag: "Light",
-    },
-    "cola-combo": {
-      title: "Family Combo",
-      description: "Two burgers, wings, fries, sauces, and chilled drinks.",
-      tag: "Value",
-    },
-  },
-
-  ar: {
-    "classic-stack": {
-      title: "برغر كلاسيك",
-      description: "لحم مزدوج، جبن شيدر، خس مقرمش، طماطم، وصوص خاص.",
-      tag: "الأكثر طلباً",
-    },
-    "smoky-chicken": {
-      title: "راب دجاج مدخن",
-      description: "دجاج مشوي، مخلل، صوص ثوم، وخبز طازج.",
-      tag: "طازج",
-    },
-    "loaded-fries": {
-      title: "علبة بطاطا محملة",
-      description: "بطاطا ذهبية مع جبن، هالبينو، رانش، وبصل مقرمش.",
-      tag: "للمشاركة",
-    },
-    "hot-wings": {
-      title: "أجنحة حارة",
-      description: "ست قطع أجنحة حارة مع صوص بارد.",
-      tag: "حار",
-    },
-    "garden-bowl": {
-      title: "طبق الحديقة",
-      description: "خضار طازجة، حلوم مشوي، طماطم، أعشاب، وصوص ليمون.",
-      tag: "خفيف",
-    },
-    "cola-combo": {
-      title: "وجبة العائلة",
-      description: "برغران، أجنحة، بطاطا، صوصات، ومشروبات باردة.",
-      tag: "قيمة",
-    },
-  },
-
-  ku: {
-    "classic-stack": {
-      title: "بەرگەری کلاسیک",
-      description: "گۆشتی دوو قات، چیدەر، کەڵەکی تازە، تەماتە، و سۆسی تایبەت.",
-      tag: "زۆر فرۆشراو",
-    },
-    "smoky-chicken": {
-      title: "ڕاپی مریشکی دووکەڵی",
-      description: "مریشکی برژاو، خیارشۆر، سۆسی سیر، و نانی گەرم.",
-      tag: "تازە",
-    },
-    "loaded-fries": {
-      title: "پەتاتەی پڕکراو",
-      description:
-        "پەتاتەی زێڕین لەگەڵ پەنیر، هالاپینیۆ، ڕانچ، و پیازی قەرمەز.",
-      tag: "هاوبەش",
-    },
-    "hot-wings": {
-      title: "باڵی توند",
-      description: "شەش پارچە باڵی توند لەگەڵ سۆسی فێنک.",
-      tag: "توند",
-    },
-    "garden-bowl": {
-      title: "قاپی باخچە",
-      description: "سەوزەی تازە، حلومی برژاو، تەماتە، ڕووەک، و سۆسی لیمۆ.",
-      tag: "سووک",
-    },
-    "cola-combo": {
-      title: "کۆمبۆی خێزان",
-      description: "دوو بەرگەر، باڵ، پەتاتە، سۆس، و خواردنەوەی فێنک.",
-      tag: "باشترین نرخ",
-    },
-  },
-};
-
-export const fallbackFoods = [
-  {
-    _id: "classic-stack",
-    title: "Classic Stack Burger",
-    description:
-      "Double beef, cheddar, crisp lettuce, tomato, and house sauce.",
-    category: { title: "Burgers" },
-    price: 8500,
-    stock: 18,
-    status: "active",
-    rating: 4.8,
-    prepTime: "14 min",
-    tag: "Best seller",
-    visual: "burger",
-  },
-  {
-    _id: "smoky-chicken",
-    title: "Smoky Chicken Wrap",
-    description:
-      "Grilled chicken, pickles, garlic sauce, and charred flatbread.",
-    category: { title: "Wraps" },
-    price: 6500,
-    stock: 22,
-    status: "active",
-    rating: 4.6,
-    prepTime: "10 min",
-    tag: "Fresh",
-    visual: "wrap",
-  },
-  {
-    _id: "loaded-fries",
-    title: "Loaded Fries Box",
-    description:
-      "Golden fries with cheese, jalapenos, ranch, and crispy onions.",
-    category: { title: "Sides" },
-    price: 5000,
-    stock: 30,
-    status: "active",
-    rating: 4.7,
-    prepTime: "8 min",
-    tag: "Shareable",
-    visual: "fries",
-  },
-  {
-    _id: "hot-wings",
-    title: "Fire Wings",
-    description: "Six spicy wings tossed in pepper glaze with cool dip.",
-    category: { title: "Chicken" },
-    price: 7000,
-    stock: 15,
-    status: "active",
-    rating: 4.9,
-    prepTime: "12 min",
-    tag: "Spicy",
-    visual: "wings",
-  },
-  {
-    _id: "garden-bowl",
-    title: "Garden Crunch Bowl",
-    description:
-      "Crisp greens, grilled halloumi, tomatoes, herbs, and lemon sauce.",
-    category: { title: "Bowls" },
-    price: 7500,
-    stock: 12,
-    status: "active",
-    rating: 4.5,
-    prepTime: "9 min",
-    tag: "Light",
-    visual: "bowl",
-  },
-  {
-    _id: "cola-combo",
-    title: "Family Combo",
-    description: "Two burgers, wings, fries, sauces, and chilled drinks.",
-    category: { title: "Combos" },
-    price: 24000,
-    stock: 9,
-    status: "active",
-    rating: 4.9,
-    prepTime: "18 min",
-    tag: "Value",
-    visual: "combo",
-  },
-];
-
-export const foodIcons = {
-  bowl: "🥗",
-  burger: "🍔",
-  combo: "🍱",
-  drink: "🥤",
-  fries: "🍟",
-  wings: "🍗",
-  wrap: "🌯",
 };

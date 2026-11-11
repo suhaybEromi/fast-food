@@ -1,7 +1,7 @@
 import api from "./api";
 
-export const getFoods = async () => {
-  const { data } = await api.get("/food");
+export const getFoods = async params => {
+  const { data } = await api.get("/food", { params });
   return data;
 };
 

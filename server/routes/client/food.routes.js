@@ -2,17 +2,11 @@ import express from "express";
 const router = express.Router();
 
 import foodController from "../../controllers/client/food.controller.js";
+import protectCustomer from "../../middlewares/customerAuth.js";
 
 // Client: get all foods
 router.get("/", foodController.getFoods);
-
-// Client: create food
-router.post("/", foodController.addFoods);
-
-// Client: update food
-router.put("/:id", foodController.updateFoods);
-
-// Client: delete food
-router.delete("/:id", foodController.deleteFoods);
+router.get("/:id", foodController.getFood);
+router.post("/:id/reviews", protectCustomer, foodController.addReview);
 
 export default router;

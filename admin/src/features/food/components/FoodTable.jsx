@@ -76,7 +76,23 @@ const FoodTable = ({ foods = [], onDelete }) => {
                   IQD {Number(food.price).toLocaleString()}
                 </td>
 
-                <td className="px-6 py-4 text-slate-600">{food.stock}</td>
+                <td className="px-6 py-4">
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-black ${
+                      food.stock === 0
+                        ? "bg-red-50 text-red-700"
+                        : food.stock <= 5
+                          ? "bg-amber-50 text-amber-700"
+                          : "bg-emerald-50 text-emerald-700"
+                    }`}
+                  >
+                    {food.stock === 0
+                      ? "Out of stock"
+                      : food.stock <= 5
+                        ? `${food.stock} low`
+                        : `${food.stock} in stock`}
+                  </span>
+                </td>
 
                 <td className="px-6 py-4">
                   <span

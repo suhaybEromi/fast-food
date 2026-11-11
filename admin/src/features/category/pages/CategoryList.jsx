@@ -26,7 +26,9 @@ const CategoryList = () => {
   };
 
   useEffect(() => {
-    fetchCategories();
+    const timeoutId = window.setTimeout(fetchCategories, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, []);
 
   const handleDelete = async id => {

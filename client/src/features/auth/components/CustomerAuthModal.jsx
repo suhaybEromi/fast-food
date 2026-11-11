@@ -50,7 +50,7 @@ export default function CustomerAuthModal({ initialMode = "login", onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[70] grid place-items-center bg-[#171511]/55 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-70 grid place-items-center bg-[#171511]/55 p-4 backdrop-blur-sm">
       <button
         type="button"
         aria-label="Close account dialog"

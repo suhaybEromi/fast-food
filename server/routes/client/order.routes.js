@@ -9,6 +9,8 @@ router.use(protectCustomer);
 
 router.post("/", orderController.createOrder);
 router.get("/mine", orderController.getMyOrders);
+router.post("/:id/reorder", orderController.reorder);
+router.get("/:id/events", orderController.streamOrder);
 router.get("/:id", orderController.getOrder);
 
 export default router;

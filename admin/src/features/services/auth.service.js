@@ -24,3 +24,18 @@ export const logoutAdmin = async () => {
   const { data } = await api.post("/auth/logout");
   return data;
 };
+
+export const setupAdminTwoFactor = async () => {
+  const { data } = await api.post("/auth/2fa/setup");
+  return data;
+};
+
+export const confirmAdminTwoFactor = async code => {
+  const { data } = await api.post("/auth/2fa/confirm", { code });
+  return data;
+};
+
+export const disableAdminTwoFactor = async code => {
+  const { data } = await api.post("/auth/2fa/disable", { code });
+  return data;
+};

@@ -9,12 +9,13 @@ const FoodList = () => {
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
+  const [stockFilter, setStockFilter] = useState("all");
 
   const fetchFoods = async () => {
     setLoading(true);
 
     try {
-      const data = await getFoods();
+      const data = await getFoods({ limit: 100 });
 
       setFoods(data.data || []);
     } catch (error) {
@@ -26,7 +27,9 @@ const FoodList = () => {
   };
 
   useEffect(() => {
-    fetchFoods();
+    const timeoutId = window.setTimeout(fetchFoods, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, []);
 
   const handleDelete = async id => {
@@ -43,8 +46,12 @@ const FoodList = () => {
       food.title?.toLowerCase().includes(search) ||
       food.category?.title?.toLowerCase().includes(search);
     const matchesStatus = status === "all" || food.status === status;
+    const matchesStock =
+      stockFilter === "all" ||
+      (stockFilter === "low" && food.stock > 0 && food.stock <= 5) ||
+      (stockFilter === "out" && food.stock === 0);
 
-    return matchesSearch && matchesStatus;
+    return matchesSearch && matchesStatus && matchesStock;
   });
 
   return (
@@ -94,6 +101,27 @@ const FoodList = () => {
               }`}
             >
               {option}
+            </button>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-3 gap-2 lg:col-span-2">
+          {[
+            ["all", "All stock"],
+            ["low", "Low stock"],
+            ["out", "Out"],
+          ].map(([value, label]) => (
+            <button
+              type="button"
+              key={value}
+              onClick={() => setStockFilter(value)}
+              className={`rounded-lg px-4 py-2 text-sm font-black transition ${
+                stockFilter === value
+                  ? "bg-red-600 text-white"
+                  : "border border-slate-200 bg-white text-slate-600 hover:border-red-200 hover:text-red-600"
+              }`}
+            >
+              {label}
             </button>
           ))}
         </div>

@@ -14,14 +14,16 @@ const adminSchema = new Schema(
     password: {
       type: String,
       required: true,
-      minlength: 6,
+      minlength: 12,
       select: false,
     },
     role: {
       type: String,
-      enum: ["admin"],
-      default: "admin",
+      enum: ["admin", "super_admin", "manager", "staff"],
+      default: "staff",
     },
+
+    refreshTokenHash: { type: String, select: false, default: "" },
   },
   { timestamps: true },
 );

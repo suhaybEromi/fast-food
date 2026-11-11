@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "security:audit": "npm audit --omit=dev",
+    "security:fix": "npm audit fix"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.0",

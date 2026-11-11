@@ -2,15 +2,17 @@ import jwt from "jsonwebtoken";
 
 import asyncHandler from "./asyncHandler.js";
 import Customer from "../models/customer.js";
+import { COOKIE_NAMES } from "../utils/cookies.js";
+import { getJwtSecret } from "../utils/secrets.js";
 
 const getAccessSecret = () =>
-  process.env.CUSTOMER_JWT_ACCESS_SECRET ||
-  process.env.JWT_ACCESS_SECRET ||
-  process.env.JWT_SECRET ||
-  "fast-food-customer-access-secret";
+  getJwtSecret(
+    ["CUSTOMER_JWT_ACCESS_SECRET", "JWT_ACCESS_SECRET", "JWT_SECRET"],
+    "Customer access JWT secret",
+  );
 
 const protectCustomer = asyncHandler(async (req, _res, next) => {
-  const token = req.cookies?.customerAccessToken;
+  const token = req.cookies?.[COOKIE_NAMES.customerAccess];
 
   if (!token) {
     const error = new Error("Customer login is required");

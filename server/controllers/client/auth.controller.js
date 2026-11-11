@@ -1,31 +1,36 @@
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 
 import asyncHandler from "../../middlewares/asyncHandler.js";
 import Customer from "../../models/customer.js";
+import {
+  AUTH_COOKIE_MAX_AGE,
+  COOKIE_NAMES,
+  getPrivateCookieOptions,
+} from "../../utils/cookies.js";
+import { getJwtSecret } from "../../utils/secrets.js";
 
-const ACCESS_COOKIE = "customerAccessToken";
-const REFRESH_COOKIE = "customerRefreshToken";
-const ACCESS_MAX_AGE = 15 * 60 * 1000;
-const REFRESH_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
+const ACCESS_COOKIE = COOKIE_NAMES.customerAccess;
+const REFRESH_COOKIE = COOKIE_NAMES.customerRefresh;
+const ACCESS_MAX_AGE = AUTH_COOKIE_MAX_AGE.access;
+const REFRESH_MAX_AGE = AUTH_COOKIE_MAX_AGE.refresh;
+
+const hashToken = token =>
+  crypto.createHash("sha256").update(token).digest("hex");
 
 const getAccessSecret = () =>
-  process.env.CUSTOMER_JWT_ACCESS_SECRET ||
-  process.env.JWT_ACCESS_SECRET ||
-  process.env.JWT_SECRET ||
-  "fast-food-customer-access-secret";
+  getJwtSecret(
+    ["CUSTOMER_JWT_ACCESS_SECRET", "JWT_ACCESS_SECRET", "JWT_SECRET"],
+    "Customer access JWT secret",
+  );
 
 const getRefreshSecret = () =>
-  process.env.CUSTOMER_JWT_REFRESH_SECRET ||
-  process.env.JWT_REFRESH_SECRET ||
-  process.env.JWT_SECRET ||
-  "fast-food-customer-refresh-secret";
+  getJwtSecret(
+    ["CUSTOMER_JWT_REFRESH_SECRET", "JWT_REFRESH_SECRET", "JWT_SECRET"],
+    "Customer refresh JWT secret",
+  );
 
-const getCookieOptions = maxAge => ({
-  httpOnly: true,
-  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-  secure: process.env.NODE_ENV === "production",
-  maxAge,
-});
+const getCookieOptions = maxAge => getPrivateCookieOptions(maxAge);
 
 const normalizeEmail = email => email.trim().toLowerCase();
 
@@ -47,17 +52,15 @@ const signRefreshToken = customer =>
     },
   );
 
-const setAuthCookies = (res, customer) => {
-  res.cookie(
-    ACCESS_COOKIE,
-    signAccessToken(customer),
-    getCookieOptions(ACCESS_MAX_AGE),
-  );
-  res.cookie(
-    REFRESH_COOKIE,
-    signRefreshToken(customer),
-    getCookieOptions(REFRESH_MAX_AGE),
-  );
+const setAuthCookies = async (res, customer) => {
+  const accessToken = signAccessToken(customer);
+  const refreshToken = signRefreshToken(customer);
+
+  customer.refreshTokenHash = hashToken(refreshToken);
+  await customer.save({ validateBeforeSave: false });
+
+  res.cookie(ACCESS_COOKIE, accessToken, getCookieOptions(ACCESS_MAX_AGE));
+  res.cookie(REFRESH_COOKIE, refreshToken, getCookieOptions(REFRESH_MAX_AGE));
 };
 
 const clearAuthCookies = res => {
@@ -65,8 +68,11 @@ const clearAuthCookies = res => {
   res.clearCookie(REFRESH_COOKIE, getCookieOptions(0));
 };
 
-const sendCustomer = (res, status, customer, message) => {
-  setAuthCookies(res, customer);
+const sendCustomer = async (res, status, customer, message) => {
+  await setAuthCookies(res, customer);
+
+  customer.password = undefined;
+  customer.refreshTokenHash = undefined;
 
   res.status(status).json({
     success: true,
@@ -107,7 +113,7 @@ const signup = asyncHandler(async (req, res) => {
     password,
   });
 
-  sendCustomer(res, 201, customer, "Customer account created");
+  await sendCustomer(res, 201, customer, "Customer account created");
 });
 
 const login = asyncHandler(async (req, res) => {
@@ -129,7 +135,7 @@ const login = asyncHandler(async (req, res) => {
     throw error;
   }
 
-  sendCustomer(res, 200, customer, "Logged in successfully");
+  await sendCustomer(res, 200, customer, "Logged in successfully");
 });
 
 const refresh = asyncHandler(async (req, res) => {
@@ -161,17 +167,19 @@ const refresh = asyncHandler(async (req, res) => {
     throw error;
   }
 
-  const customer = await Customer.findById(decoded.id);
+  const customer = await Customer.findById(decoded.id).select(
+    "+refreshTokenHash",
+  );
 
-  if (!customer) {
+  if (!customer || customer.refreshTokenHash !== hashToken(token)) {
     clearAuthCookies(res);
-
-    const error = new Error("Customer account was not found");
+    const error = new Error("Refresh token is invalid");
     error.status = 401;
     throw error;
   }
 
-  setAuthCookies(res, customer);
+  await setAuthCookies(res, customer);
+  customer.refreshTokenHash = undefined;
 
   res.status(200).json({
     success: true,
@@ -187,7 +195,21 @@ const me = asyncHandler(async (req, res) => {
   });
 });
 
-const logout = asyncHandler(async (_req, res) => {
+const logout = asyncHandler(async (req, res) => {
+  const token = req.cookies?.[REFRESH_COOKIE];
+
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, getRefreshSecret());
+
+      await Customer.findByIdAndUpdate(decoded.id, {
+        refreshTokenHash: "",
+      });
+    } catch {
+      // ignore invalid token
+    }
+  }
+
   clearAuthCookies(res);
 
   res.status(200).json({

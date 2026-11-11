@@ -1,4 +1,12 @@
-import { foodIcons } from "../data/food.data";
+const foodIcons = {
+  bowl: "🥗",
+  burger: "🍔",
+  combo: "🍱",
+  drink: "🥤",
+  fries: "🍟",
+  wings: "🍗",
+  wrap: "🌯",
+};
 
 export default function ProductVisual({ food, size = "large" }) {
   if (food?.image) {

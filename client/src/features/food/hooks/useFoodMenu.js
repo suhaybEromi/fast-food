@@ -1,34 +1,31 @@
 import { useEffect, useMemo, useState } from "react";
-import { fallbackFoods } from "../data/food.data";
 import { normalizeFood } from "../utils/foodHelpers";
+import { getFoods } from "../../services/api";
 
 export function useFoodMenu(language) {
-  const [foods, setFoods] = useState(fallbackFoods);
+  const [foods, setFoods] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [usingFallback, setUsingFallback] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     let mounted = true;
 
     const fetchFoods = async () => {
+      setLoading(true);
+      setError("");
+
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/food`);
-
-        if (!response.ok) throw new Error("Menu API is not available");
-
-        const payload = await response.json();
+        const payload = await getFoods();
         const apiFoods = Array.isArray(payload.data) ? payload.data : [];
 
-        if (mounted && apiFoods.length > 0) {
+        if (mounted) {
           setFoods(apiFoods);
-          setUsingFallback(false);
-        } else {
-          setFoods(fallbackFoods);
-          setUsingFallback(true);
         }
-      } catch {
-        setFoods(fallbackFoods);
-        setUsingFallback(true);
+      } catch (requestError) {
+        if (mounted) {
+          setFoods([]);
+          setError(requestError.message || "Could not load the menu.");
+        }
       } finally {
         if (mounted) setLoading(false);
       }
@@ -44,10 +41,10 @@ export function useFoodMenu(language) {
   const menu = useMemo(
     () =>
       foods
-        .filter(food => food.status !== "inactive")
+        .filter(food => food?._id && food.status !== "inactive")
         .map((food, index) => normalizeFood(food, index, language)),
     [foods, language],
   );
 
-  return { menu, loading, usingFallback };
+  return { menu, loading, error };
 }

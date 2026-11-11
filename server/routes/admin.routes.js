@@ -1,0 +1,32 @@
+import authAdminRoutes from "./admin/auth.routes.js";
+import foodAdminRoutes from "./admin/food.routes.js";
+import categoryRoutes from "./admin/category.routes.js";
+import orderAdminRoutes from "./admin/order.routes.js";
+import notificationAdminRoutes from "./admin/notification.routes.js";
+import dashboardAdminRoutes from "./admin/dashboard.routes.js";
+import couponAdminRoutes from "./admin/coupon.routes.js";
+import bannerAdminRoutes from "./admin/banner.routes.js";
+import adminUserRoutes from "./admin/adminUser.routes.js";
+import customerAdminRoutes from "./admin/customer.routes.js";
+import deliveryZoneAdminRoutes from "./admin/deliveryZone.routes.js";
+import driverAdminRoutes from "./admin/driver.routes.js";
+import auditLogAdminRoutes from "./admin/auditLog.routes.js";
+import analyticsAdminRoutes from "./admin/analytics.routes.js";
+
+import protectAdmin from "../middlewares/adminAuth.js";
+export const registerAdminRoutes = (app, adminPrefix) => {
+  app.use(`${adminPrefix}/auth`, authAdminRoutes);
+  app.use(`${adminPrefix}/food`, protectAdmin, foodAdminRoutes);
+  app.use(`${adminPrefix}/category`, protectAdmin, categoryRoutes);
+  app.use(`${adminPrefix}/order`, protectAdmin, orderAdminRoutes);
+  app.use(`${adminPrefix}/notification`, protectAdmin, notificationAdminRoutes);
+  app.use(`${adminPrefix}/dashboard`, protectAdmin, dashboardAdminRoutes);
+  app.use(`${adminPrefix}/coupon`, protectAdmin, couponAdminRoutes);
+  app.use(`${adminPrefix}/banner`, protectAdmin, bannerAdminRoutes);
+  app.use(`${adminPrefix}/admin-user`, protectAdmin, adminUserRoutes);
+  app.use(`${adminPrefix}/customer`, protectAdmin, customerAdminRoutes);
+  app.use(`${adminPrefix}/delivery-zone`, protectAdmin, deliveryZoneAdminRoutes);
+  app.use(`${adminPrefix}/driver`, protectAdmin, driverAdminRoutes);
+  app.use(`${adminPrefix}/audit-log`, protectAdmin, auditLogAdminRoutes);
+  app.use(`${adminPrefix}/analytics`, protectAdmin, analyticsAdminRoutes);
+};
